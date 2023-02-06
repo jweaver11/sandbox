@@ -37,20 +37,20 @@ func (k keyMap) FullHelp() [][]key.Binding {
 
 var keys = keyMap{
 	Up: key.NewBinding(
-		key.WithKeys("up", "k"),
-		key.WithHelp("↑/k", "move up"),
+		key.WithKeys("up"),
+		key.WithHelp("↑", "move up"),
 	),
 	Down: key.NewBinding(
-		key.WithKeys("down", "j"),
-		key.WithHelp("↓/j", "move down"),
+		key.WithKeys("down"),
+		key.WithHelp("↓", "move down"),
 	),
 	Left: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/h", "move left"),
+		key.WithKeys("left"),
+		key.WithHelp("←", "move left"),
 	),
 	Right: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/l", "move right"),
+		key.WithKeys("right"),
+		key.WithHelp("→", "move right"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("h"),
@@ -117,9 +117,9 @@ func (m helpModel) View() string {
 
 	var status string
 	if m.lastKey == "" {
-		status = "Waiting for input..."
+		status = "\nYou have enter the help section. See the bottom of the terminal for commands\n\nWaiting for input..."
 	} else {
-		status = "You chose: " + m.inputStyle.Render(m.lastKey)
+		status = "Your input: " + m.inputStyle.Render(m.lastKey)
 	}
 
 	helpView := m.help.View(m.keys)

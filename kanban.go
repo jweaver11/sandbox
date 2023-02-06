@@ -192,6 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.DeleteCurrent
 		// Uses the help.go file to load help screen
 		case "h":
+			fmt.Print("\n\n")
 			if os.Getenv("HELP_DEBUG") != "" {
 				if f, err := tea.LogToFile("debug.log", "help"); err != nil {
 					fmt.Println("Couldn't open a file for logging:", err)
