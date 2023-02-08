@@ -1,5 +1,9 @@
 // OPEN SANDBOX PROGRAM WITH THE GOALS OF ADDING ITEMS TO A LIST, AND BEING ABLE TO SELECT THEM TO PRESENT A DIFFERENT
 // MODEL DESCRIBING THE ITEM
+
+//map example --> moons := make(map[string]string)
+//moons["Jupiter"] = "Europa"
+
 package main
 
 import (
@@ -10,14 +14,16 @@ import (
 var models []tea.Model
 
 // Sets the tasks as a struct
-type Task struct {
-	title       string
-	description string
+type TasksModel struct {
+	items  map[string]string
+	cursor int
 }
 
-// Creates a new model
-func NewModel() *Model {
-	return &Model{}
+func initialModel() TasksModel {
+	return TasksModel{
+		items["Pirates of the Cryptobbean"] = "Dank Pirates",
+		items["Haramgay"] = "Gay Harambe NFT's",
+	}
 }
 
 /************* MAIN FUNCTIONS ********************/
