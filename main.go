@@ -9,9 +9,10 @@ import (
 
 // Main function that runs the program
 func main() {
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		fmt.Println(err)
+	// Sets p as a new tea program using out startUpModel
+	p := tea.NewProgram(startUpModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error running the program: %v", err)
 		os.Exit(1)
 	}
 
