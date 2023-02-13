@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -21,22 +22,40 @@ import (
 // Sets the Projects as a struct
 // This is our main model for the projects page
 type ProjectViewModel struct {
-	items, descriptions []string       // Each project with a short description
-	cursor              int            // Used to track the cursor's location
-	keys                keyMap         // Sets a keymap needed to use the help view
-	help                help.Model     // Sets help as a help.Model so we can add it automatically to the bottom of our model
-	inputStyle          lipgloss.Style // Styling
+	items, descriptions []string        // Each project with a short description
+	cursor              int             // Used to track the cursor's location
+	keys                keyMap          // Sets a keymap needed to use the help view
+	help                help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
+	inputStyle          lipgloss.Style  // Styling
+	paginator           paginator.Model // Adds page scrolling to bottom of page
 }
 
 // This function is run in main to start a new program
 // It sets our previously defined model with values
 func createProjectViewModel() ProjectViewModel {
+	// Sets items and descriptions new so we can change them easier here, and return them later
+	var items, descriptions []string
+
+	items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
+	descriptions = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
+
+	// Initializes the page scrolling for our list of items
+	p := paginator.New()    // Sets p as a new paginator we can return later
+	p.Type = paginator.Dots // Renders dots for our itmes
+	p.PerPage = 1           // Items per page
+	p.ActiveDot = lipgloss.NewStyle().Foreground(
+		lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•") // Selected page formatting
+	p.InactiveDot = lipgloss.NewStyle().Foreground(
+		lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•") // Non-selected pages formatting
+	p.SetTotalPages(len(items)) // Total number of pages
+
 	return ProjectViewModel{
-		items:        []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here"},
-		descriptions: []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project"},
+		items:        items,
+		descriptions: descriptions,
 		keys:         keys,
 		help:         help.New(),
 		inputStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		paginator:    p,
 	}
 }
 
@@ -50,6 +69,7 @@ func (p ProjectViewModel) Init() tea.Cmd {
 // Runs whenever there is an update or event
 func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	//Sets the msg to types
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// If we set a width on the help menu it can it can gracefully truncate
@@ -87,11 +107,12 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.help.ShowAll = !p.help.ShowAll
 
 		}
-
+		//var cmd tea.Cmd
+		p.paginator, cmd = p.paginator.Update(msg)
 	}
 
 	// Returns our updated model with no command
-	return p, nil
+	return p, cmd
 }
 
 // Renders the view so the user can see the updated model
@@ -114,15 +135,14 @@ func (p ProjectViewModel) View() string {
 		description := p.descriptions[i]
 
 		// Returns the model as a string, starting with the cursor, the item, then description
-		s += fmt.Sprintf("%s  %s %s\n", cursor, item, description)
+		s += fmt.Sprintf("%s  %s    [%s]\n", cursor, item, description)
 
 	}
 
-	// Sets a variable fullHelpView as a string to return our help view,
+	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
-	fullHelpView := p.help.View(p.keys)
+	fullHelpView := ("   " + p.paginator.View() + "\n" + p.help.View(p.keys))
 	height := 8 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
-
 	s += "\n" + strings.Repeat("\n", height) + fullHelpView
 
 	return s

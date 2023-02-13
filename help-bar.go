@@ -1,6 +1,14 @@
 package main
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/paginator"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
 
 // Sets a keymap struct to store the controls and key bind variables
 // So they can be called on later for the help view
@@ -40,11 +48,11 @@ var keys = keyMap{
 	),
 	Left: key.NewBinding(
 		key.WithKeys("left"),
-		key.WithHelp("←", "move left"),
+		key.WithHelp("←", "page left"),
 	),
 	Right: key.NewBinding(
 		key.WithKeys("right"),
-		key.WithHelp("→", "move right"),
+		key.WithHelp("→", "page right"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("h"),
@@ -55,3 +63,63 @@ var keys = keyMap{
 		key.WithHelp("q", "quit"),
 	),
 }
+
+func newModel() model {
+	var items []string
+	for i := 1; i < 101; i++ {
+		text := fmt.Sprintf("Item %d", i)
+		items = append(items, text)
+	}
+
+	p := paginator.New()
+	p.Type = paginator.Dots
+	p.PerPage = 10
+	p.ActiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
+	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
+	p.SetTotalPages(len(items))
+
+	return model{
+		paginator: p,
+		items:     items,
+	}
+}
+
+type model struct {
+	items     []string
+	paginator paginator.Model
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "esc", "ctrl+c":
+			return m, tea.Quit
+		}
+	}
+	m.paginator, cmd = m.paginator.Update(msg)
+	return m, cmd
+}
+
+func (m model) View() string {
+	var b strings.Builder
+	b.WriteString("\n  Paginator Example\n\n")
+	start, end := m.paginator.GetSliceBounds(len(m.items))
+	for _, item := range m.items[start:end] {
+		b.WriteString("  • " + item + "\n\n")
+	}
+	b.WriteString("  " + m.paginator.View())
+	b.WriteString("\n\n  h/l ←/→ page • q: quit\n")
+	return b.String()
+}
+
+// Main
+//p := tea.NewProgram(newModel())
+//if _, err := p.Run(); err != nil {
+//log.Fatal(err)
+//}
