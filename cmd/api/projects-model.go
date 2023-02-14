@@ -3,7 +3,8 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Setup correct help options at bottom
+// Fix cursor to point at map of projects
+// Use lipgloss color packages to add some color
 // Begin work on more detailed description models
 // Better formatting and design of main project view model
 
@@ -24,9 +25,9 @@ import (
 type ProjectViewModel struct {
 	items, descriptions []string        // Each project with a short description
 	cursor              int             // Used to track the cursor's location
+	inputStyle          lipgloss.Style  // Styling
 	keys                keyMap          // Sets a keymap needed to use the help view
 	help                help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
-	inputStyle          lipgloss.Style  // Styling
 	paginator           paginator.Model // Adds page scrolling to bottom of page
 }
 
@@ -36,18 +37,25 @@ func createProjectViewModel() ProjectViewModel {
 	// Sets items and descriptions new so we can change them easier here, and return them later
 	var items, descriptions []string
 
-	items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
-	descriptions = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
+	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
+	//descriptions = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
+
+	for i := 0; i < 30; i++ {
+		text := fmt.Sprintf("Item %d", i)
+		desc := fmt.Sprintf("Description %d", i)
+		items = append(items, text)
+		descriptions = append(descriptions, desc)
+	}
 
 	// Initializes the page scrolling for our list of items
 	p := paginator.New()    // Sets p as a new paginator we can return later
 	p.Type = paginator.Dots // Renders dots for our itmes
-	p.PerPage = 1           // Items per page
+	p.PerPage = 5           // Items per page
 	p.ActiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•") // Selected page formatting
 	p.InactiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•") // Non-selected pages formatting
-	p.SetTotalPages(len(items)) // Total number of pages
+	p.SetTotalPages(len(items))
 
 	return ProjectViewModel{
 		items:        items,
@@ -81,8 +89,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Converts the messages to string so we can see which key was pressed
 		switch msg.String() {
-		case "ctrl+c", "q":
-			fmt.Println("\n\n\n\nbye bye bozo")
+		case "ctrl+c", "q", "esc":
 			return p, tea.Quit
 
 		// Moves the cursor up
@@ -107,9 +114,9 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.help.ShowAll = !p.help.ShowAll
 
 		}
-		//var cmd tea.Cmd
-		p.paginator, cmd = p.paginator.Update(msg)
 	}
+
+	p.paginator, cmd = p.paginator.Update(msg)
 
 	// Returns our updated model with no command
 	return p, cmd
@@ -117,13 +124,18 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // Renders the view so the user can see the updated model
 func (p ProjectViewModel) View() string {
-	// Sets s as a string to return out entire model
-	// This Sets the header before s returns the model
-	s := "What project would you like to know more about?\n\n"
+	// Sets s as a string builder to return out entire model
+	// Will return as a string later
+	var s strings.Builder
+
+	// This Sets the header
+	s.WriteString("What project would you like to know more about?\n\n")
 
 	// Iterate over the individual projects in items
-	for i, item := range p.items {
-
+	// Using the paginator function GetSliceBounds in order
+	// To actually use the page limitations set earlier
+	start1, end1 := p.paginator.GetSliceBounds(len(p.items))
+	for i, item := range p.items[start1:end1] {
 		// Is the cursor pointing at this choice
 		cursor := " " // No cursor
 
@@ -131,19 +143,17 @@ func (p ProjectViewModel) View() string {
 			cursor = ">" //Sets cursor as >
 		}
 
-		// Sets the individual descriptions as one variable to be returned
-		description := p.descriptions[i]
-
 		// Returns the model as a string, starting with the cursor, the item, then description
-		s += fmt.Sprintf("%s  %s    [%s]\n", cursor, item, description)
-
+		s.WriteString(cursor + " " + item + "\n")
 	}
 
 	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
 	fullHelpView := ("   " + p.paginator.View() + "\n" + p.help.View(p.keys))
 	height := 8 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
-	s += "\n" + strings.Repeat("\n", height) + fullHelpView
+	//s += "\n" + strings.Repeat("\n", height) + fullHelpView
+	s.WriteString("\n" + strings.Repeat("\n", height) + fullHelpView)
 
-	return s
+	//return s
+	return s.String()
 }

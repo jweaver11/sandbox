@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -39,8 +38,8 @@ func (k keyMap) FullHelp() [][]key.Binding {
 // Sets keys as our object using our keyMap struct from above
 var keys = keyMap{
 	Up: key.NewBinding(
-		key.WithKeys("up"),
-		key.WithHelp("↑", "move up"),
+		key.WithKeys("up"),           // Activator keys for the struct
+		key.WithHelp("↑", "move up"), // What help model shows
 	),
 	Down: key.NewBinding(
 		key.WithKeys("down"),
@@ -56,15 +55,19 @@ var keys = keyMap{
 	),
 	Help: key.NewBinding(
 		key.WithKeys("h"),
-		key.WithHelp("h", "toggle help"),
+		key.WithHelp("h", "help"),
 	),
 	Quit: key.NewBinding(
-		key.WithKeys("q", "ctrl+c"),
+		key.WithKeys("q", "ctrl+c", "esc"),
 		key.WithHelp("q", "quit"),
 	),
 }
 
-func newModel() model {
+type PageModel struct {
+	paginator paginator.Model
+}
+
+func createPageScrollModel() PageModel {
 	var items []string
 	for i := 1; i < 101; i++ {
 		text := fmt.Sprintf("Item %d", i)
@@ -78,42 +81,15 @@ func newModel() model {
 	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
 	p.SetTotalPages(len(items))
 
-	return model{
+	return PageModel{
 		paginator: p,
-		items:     items,
 	}
 }
 
-type model struct {
-	items     []string
-	paginator paginator.Model
-}
-
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "esc", "ctrl+c":
-			return m, tea.Quit
-		}
-	}
-	m.paginator, cmd = m.paginator.Update(msg)
-	return m, cmd
-}
-
-func (m model) View() string {
+func (o PageModel) View() string {
 	var b strings.Builder
 	b.WriteString("\n  Paginator Example\n\n")
-	start, end := m.paginator.GetSliceBounds(len(m.items))
-	for _, item := range m.items[start:end] {
-		b.WriteString("  • " + item + "\n\n")
-	}
-	b.WriteString("  " + m.paginator.View())
+	b.WriteString("  " + o.paginator.View())
 	b.WriteString("\n\n  h/l ←/→ page • q: quit\n")
 	return b.String()
 }
