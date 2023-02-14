@@ -3,10 +3,7 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Fix cursor to point at map of projects
 // Use lipgloss color packages to add some color
-// Begin work on more detailed description models
-// Better formatting and design of main project view model
 
 package main
 
@@ -23,12 +20,12 @@ import (
 // Sets the Projects as a struct
 // This is our main model for the projects page
 type ProjectViewModel struct {
-	items, descriptions []string        // Each project with a short description
-	cursor              int             // Used to track the cursor's location
-	inputStyle          lipgloss.Style  // Styling
-	keys                keyMap          // Sets a keymap needed to use the help view
-	help                help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
-	paginator           paginator.Model // Adds page scrolling to bottom of page
+	items, shortDesc, longDesc []string        // Each project with a short description
+	cursor                     int             // Used to track the cursor's location
+	inputStyle                 lipgloss.Style  // Styling
+	keys                       keyMap          // Sets a keymap needed to use the help view
+	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
+	paginator                  paginator.Model // Adds page scrolling to bottom of page
 }
 
 // This function is run in main to start a new program
@@ -40,9 +37,9 @@ func createProjectViewModel() ProjectViewModel {
 	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
 	//descriptions = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
-	for i := 0; i < 30; i++ {
-		text := fmt.Sprintf("Item %d", i)
-		desc := fmt.Sprintf("Description %d", i)
+	for i := 1; i < 28; i++ {
+		text := fmt.Sprintf("Item: %d", i)
+		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
 		descriptions = append(descriptions, desc)
 	}
@@ -50,20 +47,22 @@ func createProjectViewModel() ProjectViewModel {
 	// Initializes the page scrolling for our list of items
 	p := paginator.New()    // Sets p as a new paginator we can return later
 	p.Type = paginator.Dots // Renders dots for our itmes
-	p.PerPage = 5           // Items per page
+	p.PerPage = 9           // Items per page
 	p.ActiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•") // Selected page formatting
 	p.InactiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•") // Non-selected pages formatting
 	p.SetTotalPages(len(items))
 
+	// Returns our model
 	return ProjectViewModel{
-		items:        items,
-		descriptions: descriptions,
-		keys:         keys,
-		help:         help.New(),
-		inputStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
-		paginator:    p,
+		items:      items,
+		shortDesc:  descriptions,
+		longDesc:   descriptions,
+		keys:       keys,
+		help:       help.New(),
+		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		paginator:  p,
 	}
 }
 
@@ -79,6 +78,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	//Sets the msg to types
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+
 	case tea.WindowSizeMsg:
 		// If we set a width on the help menu it can it can gracefully truncate
 		// its view as needed.
@@ -100,17 +100,17 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Moves the cursor up
 		case "down":
-			if p.cursor < len(p.items) {
+			if p.cursor < 8 {
 				p.cursor++
 			}
 
-		// Toggle selected view to return a new model of item cursor is hovering
+		// Return description of highlighted project
 		case " ", "enter":
 			// Placeholder
 			return p, nil
 
 		// Toggles the help view between mini and full view
-		case "h":
+		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
 		}
@@ -129,7 +129,7 @@ func (p ProjectViewModel) View() string {
 	var s strings.Builder
 
 	// This Sets the header
-	s.WriteString("What project would you like to know more about?\n\n")
+	s.WriteString("What project would you like to know more about?\n\n\n")
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order
@@ -144,7 +144,7 @@ func (p ProjectViewModel) View() string {
 		}
 
 		// Returns the model as a string, starting with the cursor, the item, then description
-		s.WriteString(cursor + " " + item + "\n")
+		s.WriteString(cursor + " " + item + "\n\n")
 	}
 
 	// Sets a variable fullHelpView as a string to return our pages menu help view,

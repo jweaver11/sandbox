@@ -1,12 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/paginator"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Sets a keymap struct to store the controls and key bind variables
@@ -54,48 +49,11 @@ var keys = keyMap{
 		key.WithHelp("→", "page right"),
 	),
 	Help: key.NewBinding(
-		key.WithKeys("h"),
-		key.WithHelp("h", "help"),
+		key.WithKeys("?"),
+		key.WithHelp("?", "help"),
 	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c", "esc"),
 		key.WithHelp("q", "quit"),
 	),
 }
-
-type PageModel struct {
-	paginator paginator.Model
-}
-
-func createPageScrollModel() PageModel {
-	var items []string
-	for i := 1; i < 101; i++ {
-		text := fmt.Sprintf("Item %d", i)
-		items = append(items, text)
-	}
-
-	p := paginator.New()
-	p.Type = paginator.Dots
-	p.PerPage = 10
-	p.ActiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
-	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
-	p.SetTotalPages(len(items))
-
-	return PageModel{
-		paginator: p,
-	}
-}
-
-func (o PageModel) View() string {
-	var b strings.Builder
-	b.WriteString("\n  Paginator Example\n\n")
-	b.WriteString("  " + o.paginator.View())
-	b.WriteString("\n\n  h/l ←/→ page • q: quit\n")
-	return b.String()
-}
-
-// Main
-//p := tea.NewProgram(newModel())
-//if _, err := p.Run(); err != nil {
-//log.Fatal(err)
-//}
