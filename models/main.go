@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	//"sandbox/styling"		// How to import packages
+	// How to import packages
+	//"sandbox/helpers"
+	//"sandbox/styling"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -20,7 +22,6 @@ func main() {
 	//os.Exit(1)
 	//} else {
 	// Runs the program if there is not an error with the server
-
 	// Sets p as a new tea program using out startUpModel
 	p := tea.NewProgram(CreateProjectViewModel(), tea.WithAltScreen()) //tea.WithAltScreen starts in fullscreen mode
 	if _, err := p.Run(); err != nil {

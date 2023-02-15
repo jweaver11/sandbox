@@ -1,5 +1,5 @@
 // Checks a serve to see if it recieves a response that it is up, or if it is down returns an error.
-package main
+package helpers
 
 import (
 	"fmt"

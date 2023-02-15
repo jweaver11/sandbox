@@ -3,13 +3,17 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Use lipgloss color packages to add some color
+// Work on using style of s string builder
+// Use 'charm' command and learn from lipgloss package
+// Add border in styling
 
 package main
 
 import (
 	"fmt"
 	"strings"
+
+	"sandbox/styling"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/paginator"
@@ -22,7 +26,7 @@ import (
 type ProjectViewModel struct {
 	items, shortDesc, longDesc []string        // Each project with a short description
 	cursor                     int             // Used to track the cursor's location
-	inputStyle                 lipgloss.Style  // Styling
+	titleStyle                 lipgloss.Style  // Styling
 	keys                       keyMap          // Sets a keymap needed to use the help view
 	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator                  paginator.Model // Adds page scrolling to bottom of page
@@ -39,7 +43,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
 	//shortDesc = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
-	for i := 1; i < 25; i++ {
+	for i := 1; i < 35; i++ {
 		text := fmt.Sprintf("Item: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
@@ -63,8 +67,9 @@ func CreateProjectViewModel() ProjectViewModel {
 		longDesc:   longDesc,
 		keys:       keys,
 		help:       help.New(),
-		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
-		paginator:  p,
+		titleStyle: styling.Title,
+		//titleStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		paginator: p,
 	}
 }
 
@@ -129,6 +134,8 @@ func (p ProjectViewModel) View() string {
 	// Sets s as a string builder to return out entire model
 	// Will return as a string later
 	var s strings.Builder
+
+	styling.PrintTitle()
 
 	// This Sets the header
 	s.WriteString("What project would you like to know more about?\n\n\n")
