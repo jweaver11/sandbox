@@ -30,24 +30,26 @@ type ProjectViewModel struct {
 
 // This function is run in main to start a new program
 // It sets our previously defined model with values
-func createProjectViewModel() ProjectViewModel {
+func CreateProjectViewModel() ProjectViewModel {
 	// Sets items and descriptions new so we can change them easier here, and return them later
-	var items, descriptions []string
+	var items, shortDesc, longDesc []string
+
+	longDesc = []string{"This is a dank long description my homie"}
 
 	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
-	//descriptions = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
+	//shortDesc = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
-	for i := 1; i < 28; i++ {
+	for i := 1; i < 25; i++ {
 		text := fmt.Sprintf("Item: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
-		descriptions = append(descriptions, desc)
+		shortDesc = append(shortDesc, desc)
 	}
 
 	// Initializes the page scrolling for our list of items
 	p := paginator.New()    // Sets p as a new paginator we can return later
 	p.Type = paginator.Dots // Renders dots for our itmes
-	p.PerPage = 9           // Items per page
+	p.PerPage = 8           // Items per page
 	p.ActiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•") // Selected page formatting
 	p.InactiveDot = lipgloss.NewStyle().Foreground(
@@ -57,8 +59,8 @@ func createProjectViewModel() ProjectViewModel {
 	// Returns our model
 	return ProjectViewModel{
 		items:      items,
-		shortDesc:  descriptions,
-		longDesc:   descriptions,
+		shortDesc:  shortDesc,
+		longDesc:   longDesc,
 		keys:       keys,
 		help:       help.New(),
 		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
