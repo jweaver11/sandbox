@@ -13,6 +13,14 @@ import (
 
 // Main function that runs the program
 func main() {
+	if err := run(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+}
+
+func run() (err error) {
 	// Checks to see if the server is up first
 	// For now it just uses the charm server
 	//
@@ -27,7 +35,8 @@ func main() {
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running the program: %v", err)
 		os.Exit(1)
+		return err
 	}
 	//
-
+	return err
 }

@@ -24,9 +24,10 @@ import (
 // Sets the Projects as a struct
 // This is our main model for the projects page
 type ProjectViewModel struct {
-	items, shortDesc, longDesc []string        // Each project with a short description
-	cursor                     int             // Used to track the cursor's location
-	titleStyle                 lipgloss.Style  // Styling
+	items, shortDesc, longDesc []string       // Each project with a short description
+	cursor                     int            // Used to track the cursor's location
+	titleStyle                 lipgloss.Style // Styling
+	defaultStyle               lipgloss.Style
 	keys                       keyMap          // Sets a keymap needed to use the help view
 	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator                  paginator.Model // Adds page scrolling to bottom of page
@@ -62,13 +63,11 @@ func CreateProjectViewModel() ProjectViewModel {
 
 	// Returns our model
 	return ProjectViewModel{
-		items:      items,
-		shortDesc:  shortDesc,
-		longDesc:   longDesc,
-		keys:       keys,
-		help:       help.New(),
-		titleStyle: styling.Title,
-		//titleStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		items:     items,
+		shortDesc: shortDesc,
+		longDesc:  longDesc,
+		keys:      keys,
+		help:      help.New(),
 		paginator: p,
 	}
 }
@@ -107,7 +106,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Moves the cursor up
 		case "down":
-			if p.cursor < 8 {
+			if p.cursor < 7 {
 				p.cursor++
 			}
 
@@ -135,10 +134,14 @@ func (p ProjectViewModel) View() string {
 	// Will return as a string later
 	var s strings.Builder
 
-	styling.PrintTitle()
+	//styling.PrintTitle()
+
+	var header string = "What project would you like to know more about?\n\n\n"
+
+	// Must use render method to render style to string
+	s.WriteString(styling.TitleStyle.Render(header) + "\n")
 
 	// This Sets the header
-	s.WriteString("What project would you like to know more about?\n\n\n")
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order
@@ -159,7 +162,7 @@ func (p ProjectViewModel) View() string {
 	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
 	fullHelpView := ("   " + p.paginator.View() + "\n" + p.help.View(p.keys))
-	height := 8 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
+	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
 	//s += "\n" + strings.Repeat("\n", height) + fullHelpView
 	s.WriteString("\n" + strings.Repeat("\n", height) + fullHelpView)
 
