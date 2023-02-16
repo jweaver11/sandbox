@@ -24,10 +24,8 @@ import (
 // Sets the Projects as a struct
 // This is our main model for the projects page
 type ProjectViewModel struct {
-	items, shortDesc, longDesc []string       // Each project with a short description
-	cursor                     int            // Used to track the cursor's location
-	titleStyle                 lipgloss.Style // Styling
-	defaultStyle               lipgloss.Style
+	items, shortDesc, longDesc []string        // Each project with a short description
+	cursor                     int             // Used to track the cursor's location
 	keys                       keyMap          // Sets a keymap needed to use the help view
 	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator                  paginator.Model // Adds page scrolling to bottom of page
@@ -45,7 +43,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	//shortDesc = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
 	for i := 1; i < 35; i++ {
-		text := fmt.Sprintf("Item: %d", i)
+		text := fmt.Sprintf("Project: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
 		shortDesc = append(shortDesc, desc)
@@ -134,14 +132,16 @@ func (p ProjectViewModel) View() string {
 	// Will return as a string later
 	var s strings.Builder
 
-	//styling.PrintTitle()
+	var header string = "This is the header \n\n"
 
-	var header string = "What project would you like to know more about?\n\n\n"
+	style := lipgloss.NewStyle().Border(styling.Border)
 
-	// Must use render method to render style to string
-	s.WriteString(styling.TitleStyle.Render(header) + "\n")
+	s.WriteString(style.Render("Deez"))
 
 	// This Sets the header
+
+	// Must use render method to render style to string
+	s.WriteString(styling.HeaderStyle.Render(header) + "\n")
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order
@@ -156,14 +156,15 @@ func (p ProjectViewModel) View() string {
 		}
 
 		// Returns the model as a string, starting with the cursor, the item, then description
-		s.WriteString(cursor + " " + item + "\n\n")
+		s.WriteString(cursor + " " + item + "  " + styling.ShortDescStyle.Render(p.shortDesc[i]) + "\n\n")
 	}
 
 	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
 	fullHelpView := ("   " + p.paginator.View() + "\n" + p.help.View(p.keys))
 	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
-	//s += "\n" + strings.Repeat("\n", height) + fullHelpView
+
+	//fmt.Printf(title, projects[1])
 	s.WriteString("\n" + strings.Repeat("\n", height) + fullHelpView)
 
 	//return s

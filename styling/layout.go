@@ -5,11 +5,23 @@ import (
 )
 
 // Styling for title messages
-var TitleStyle = lipgloss.NewStyle().
-	SetString("WHAT YOU WANT\n").
+var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#7D56F4")).
-	//Background(lipgloss.Color("#7D56F4")).
 	PaddingTop(1).
-	PaddingLeft(1).
-	Width(1)
+	PaddingLeft(1)
+
+var ShortDescStyle = lipgloss.NewStyle().
+	Italic(true).
+	Faint(true)
+
+var Border = lipgloss.Border{
+	Top:         "._.:*:",
+	Bottom:      "._.:*:",
+	Left:        "|*",
+	Right:       "|*",
+	TopLeft:     "*",
+	TopRight:    "*",
+	BottomLeft:  "*",
+	BottomRight: "*",
+}
