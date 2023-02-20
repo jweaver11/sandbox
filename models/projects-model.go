@@ -10,7 +10,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"sandbox/styling"
@@ -19,7 +18,6 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 // Sets the Projects as a struct
@@ -30,6 +28,8 @@ type ProjectViewModel struct {
 	keys                       keyMap          // Sets a keymap needed to use the help view
 	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator                  paginator.Model // Adds page scrolling to bottom of page
+	width                      int
+	height                     int
 }
 
 // This function is run in main to start a new program
@@ -43,7 +43,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
 	//shortDesc = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
-	for i := 1; i < 35; i++ {
+	for i := 0; i < 35; i++ {
 		text := fmt.Sprintf("Project: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
@@ -87,7 +87,10 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		// If we set a width on the help menu it can it can gracefully truncate
 		// its view as needed.
+		// Sets the height and width of terminal so the border shows correctly
 		p.help.Width = msg.Width
+		p.width = msg.Width - 2
+		p.height = msg.Height
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -133,20 +136,14 @@ func (p ProjectViewModel) View() string {
 	// Will return as a string later
 	var s strings.Builder
 
+	// A final string that is used to format all the styles
+	// And can add one background/border too in the end
 	var finalStr string
 
-	// Returns width and height of terminal size
-	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	// Renders the header
+	finalStr += styling.HeaderStyle.Render("		This is the Header")
 
-	//WindowSizeMsg
-	styling.HeaderStyle.Width(w - 26)
-
-	// This Sets the header
-	var header string = "	This is the header\n"
-
-	// Must use render method to render style to string
-
-	finalStr += styling.HeaderStyle.Render(header)
+	finalStr += "\n\n"
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order
@@ -171,11 +168,13 @@ func (p ProjectViewModel) View() string {
 	// Sets the height as an int the counts all lines, even empty ones
 	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
 
+	// Adds the helpview which includes the paginator to our string
 	finalStr += "\n" + strings.Repeat("\n", height) + fullHelpView
 
-	completeModel := styling.Background.Render(finalStr)
+	// Runs our complete string through the border/background styling
+	completeModel := styling.Background.Width(p.width).Render(finalStr)
 
-	//return s
+	//returns our completed model as a string
 	s.WriteString(completeModel)
 	return s.String()
 }
