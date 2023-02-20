@@ -7,15 +7,19 @@ import (
 // Styling for title messages
 var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color("#7D56F4")).
-	PaddingTop(1).
-	PaddingLeft(1)
+	Foreground(lipgloss.Color("#7D56F4"))
 
+var ItemStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("12"))
+
+// Styling for the Short Descriptions
 var ShortDescStyle = lipgloss.NewStyle().
 	Italic(true).
 	Faint(true)
+	//Border(RightBorder)
 
-var Border = lipgloss.Border{
+var FullBorder = lipgloss.Border{
 	Top:         "._.:*:",
 	Bottom:      "._.:*:",
 	Left:        "|*",
@@ -25,3 +29,6 @@ var Border = lipgloss.Border{
 	BottomLeft:  "*",
 	BottomRight: "*",
 }
+
+var Background = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder())

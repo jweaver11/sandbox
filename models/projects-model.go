@@ -3,14 +3,14 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Work on using style of s string builder
-// Use 'charm' command and learn from lipgloss package
-// Add border in styling
+// Add border to whole s string builder
+// Mayb use border top for header, sides for middle and bottom for footer
 
 package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"sandbox/styling"
@@ -19,6 +19,7 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"golang.org/x/term"
 )
 
 // Sets the Projects as a struct
@@ -132,16 +133,20 @@ func (p ProjectViewModel) View() string {
 	// Will return as a string later
 	var s strings.Builder
 
-	var header string = "This is the header \n\n"
+	var finalStr string
 
-	style := lipgloss.NewStyle().Border(styling.Border)
+	// Returns width and height of terminal size
+	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	s.WriteString(style.Render("Deez"))
+	//WindowSizeMsg
+	styling.HeaderStyle.Width(w - 26)
 
 	// This Sets the header
+	var header string = "	This is the header\n"
 
 	// Must use render method to render style to string
-	s.WriteString(styling.HeaderStyle.Render(header) + "\n")
+
+	finalStr += styling.HeaderStyle.Render(header)
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order
@@ -156,17 +161,21 @@ func (p ProjectViewModel) View() string {
 		}
 
 		// Returns the model as a string, starting with the cursor, the item, then description
-		s.WriteString(cursor + " " + item + "  " + styling.ShortDescStyle.Render(p.shortDesc[i]) + "\n\n")
+		finalStr += cursor + " " + styling.ItemStyle.Render(item) + "  " + styling.ShortDescStyle.Render(p.shortDesc[i]) + "\n\n"
 	}
 
 	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
-	fullHelpView := ("   " + p.paginator.View() + "\n" + p.help.View(p.keys))
+	fullHelpView := ("     " + p.paginator.View() + "\n\n" + p.help.View(p.keys))
+
+	// Sets the height as an int the counts all lines, even empty ones
 	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
 
-	//fmt.Printf(title, projects[1])
-	s.WriteString("\n" + strings.Repeat("\n", height) + fullHelpView)
+	finalStr += "\n" + strings.Repeat("\n", height) + fullHelpView
+
+	completeModel := styling.Background.Render(finalStr)
 
 	//return s
+	s.WriteString(completeModel)
 	return s.String()
 }
