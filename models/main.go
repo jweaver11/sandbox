@@ -20,8 +20,6 @@ func main() {
 
 }
 
-var ActiveModelInt int
-
 func run() (err error) {
 	// Checks to see if the server is up first
 	// For now it just uses the charm server
@@ -35,24 +33,13 @@ func run() (err error) {
 	// Runs the program if there is not an error with the server
 	// Sets p as a new tea program using out startUpModel
 
-	ActiveModelInt = 0
+	p := tea.NewProgram(CreateProjectViewModel(), tea.WithAltScreen()) //tea.WithAltScreen starts in fullscreen mode
 
-	p := tea.NewProgram(CreateDescriptionModel(), tea.WithAltScreen()) //tea.WithAltScreen starts in fullscreen mode
-	//n := tea.NewProgram(CreateNewModel(), tea.WithAltScreen())
-
-	if ActiveModelInt == 0 {
-		if _, err := p.Run(); err != nil {
-			fmt.Printf("Error running the program: %v", err)
-			os.Exit(1)
-			return err
-		}
-	} //else {
-	//if _, err := n.Run(); err != nil {
-	//fmt.Printf("Error running the program: %v", err)
-	//os.Exit(1)
-	//return err
-	//}
-	//}
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error running the program: %v", err)
+		os.Exit(1)
+		return err
+	}
 
 	return err
 }

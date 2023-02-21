@@ -57,8 +57,7 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return d, tea.Quit
 
 		case "p":
-			ActiveModelInt = 1
-			return ProjectViewModel{}, nil
+			return CreateProjectViewModel(), nil
 		}
 	}
 	// Returns our updated model with no command

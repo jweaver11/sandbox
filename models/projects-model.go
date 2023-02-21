@@ -118,8 +118,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.help.ShowAll = !p.help.ShowAll
 
 		case "p":
-			ActiveModelInt = 1
-			return DescriptionModel{}, nil
+			return CreateDescriptionModel(), nil
 		}
 	}
 

@@ -8,7 +8,9 @@ import (
 var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#7D56F4")).
-	PaddingLeft(6)
+	PaddingLeft(6).
+	PaddingTop(1).
+	PaddingRight(2)
 
 // Styling for the items on the list
 var ItemStyle = lipgloss.NewStyle().
@@ -33,6 +35,7 @@ var FullBorder = lipgloss.Border{
 	BottomRight: "*",
 }
 
+// Border doesnt work correctly when models are re-loaded
 var Background = lipgloss.NewStyle().
-	Border(lipgloss.DoubleBorder()).
+	//Border(lipgloss.DoubleBorder()).
 	PaddingLeft(4)
