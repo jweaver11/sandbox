@@ -7,7 +7,8 @@ import (
 // Styling for the Header
 var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color("#7D56F4"))
+	Foreground(lipgloss.Color("#7D56F4")).
+	PaddingLeft(6)
 
 // Styling for the items on the list
 var ItemStyle = lipgloss.NewStyle().
@@ -17,7 +18,8 @@ var ItemStyle = lipgloss.NewStyle().
 // Styling for the Short Descriptions of the items
 var ShortDescStyle = lipgloss.NewStyle().
 	Italic(true).
-	Faint(true)
+	Faint(true).
+	PaddingLeft(6)
 
 // Custom border for outside of the TUI
 var FullBorder = lipgloss.Border{
@@ -32,4 +34,5 @@ var FullBorder = lipgloss.Border{
 }
 
 var Background = lipgloss.NewStyle().
-	Border(lipgloss.DoubleBorder())
+	Border(lipgloss.DoubleBorder()).
+	PaddingLeft(4)

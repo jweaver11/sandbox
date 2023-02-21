@@ -3,8 +3,7 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Add border to whole s string builder
-// Mayb use border top for header, sides for middle and bottom for footer
+// Needs to re-create the model everytime it switches between them
 
 package main
 
@@ -71,7 +70,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	}
 }
 
-/************* MAIN FUNCTIONS TO SETUP PROJECT VIEW MODEL ********************/
+// ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
 // Initializes the model at start of program.
 // Returns a command if there is one
 func (p ProjectViewModel) Init() tea.Cmd {
@@ -90,7 +89,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Sets the height and width of terminal so the border shows correctly
 		p.help.Width = msg.Width
 		p.width = msg.Width - 2
-		p.height = msg.Height
+		p.height = msg.Height - 2
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -113,14 +112,14 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		// Return description of highlighted project
-		case " ", "enter":
-			// Placeholder
-			return p, nil
 
 		// Toggles the help view between mini and full view
 		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
+		case "p":
+			ActiveModelInt = 1
+			return DescriptionModel{}, nil
 		}
 	}
 
@@ -141,7 +140,7 @@ func (p ProjectViewModel) View() string {
 	var finalStr string
 
 	// Renders the header
-	finalStr += styling.HeaderStyle.Render("		This is the Header")
+	finalStr += styling.HeaderStyle.Render("This is the Header")
 
 	finalStr += "\n\n"
 
@@ -172,7 +171,7 @@ func (p ProjectViewModel) View() string {
 	finalStr += "\n" + strings.Repeat("\n", height) + fullHelpView
 
 	// Runs our complete string through the border/background styling
-	completeModel := styling.Background.Width(p.width).Render(finalStr)
+	completeModel := styling.Background.Width(p.width).Height(p.height).Render(finalStr)
 
 	//returns our completed model as a string
 	s.WriteString(completeModel)
