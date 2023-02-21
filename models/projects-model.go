@@ -3,7 +3,8 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Needs to re-create the model everytime it switches between them
+// Make header all fit on one line.
+// Its stuck on limited space for some reason, only the header
 
 package main
 
@@ -117,7 +118,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
-		case "p":
+		case "tab":
 			return CreateDescriptionModel(), nil
 		}
 	}
@@ -139,7 +140,8 @@ func (p ProjectViewModel) View() string {
 	var finalStr string
 
 	// Renders the header
-	finalStr += styling.HeaderStyle.Render("This is the Header")
+	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
+	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions")
 
 	finalStr += "\n\n"
 
@@ -161,7 +163,7 @@ func (p ProjectViewModel) View() string {
 
 	// Sets a variable fullHelpView as a string to return our pages menu help view,
 	// Which is managed automatically by the help package
-	fullHelpView := ("     " + p.paginator.View() + "\n\n" + p.help.View(p.keys))
+	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
 	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")

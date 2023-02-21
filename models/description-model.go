@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type DescriptionModel struct {
@@ -56,7 +57,7 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "esc":
 			return d, tea.Quit
 
-		case "p":
+		case "tab":
 			return CreateProjectViewModel(), nil
 		}
 	}
@@ -75,12 +76,13 @@ func (d DescriptionModel) View() string {
 	var finalStr string
 
 	// Renders the header
-	finalStr += styling.HeaderStyle.Render("This is a different Models Header")
+	finalStr += styling.HeaderStyle.Render("Projects")
+	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Width(20).Render("Descriptions")
 
 	finalStr += "\n\n"
 
 	for _, item := range d.descriptions {
-		finalStr += styling.ItemStyle.Render(item) + "\n"
+		finalStr += styling.ItemStyle.Render(item) + "\n\n"
 	}
 
 	// Runs our complete string through the border/background styling
