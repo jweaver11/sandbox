@@ -139,6 +139,8 @@ func (p ProjectViewModel) View() string {
 	// And can add one background/border too in the end
 	var finalStr string
 
+	finalStr += "\n"
+
 	// Renders the header
 	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions")

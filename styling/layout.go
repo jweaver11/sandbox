@@ -7,8 +7,8 @@ import (
 // Styling for the Header
 var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
-	PaddingLeft(4).
-	PaddingTop(1)
+	PaddingLeft(3).
+	PaddingRight(8)
 	//Foreground(lipgloss.Color("#7D56F4")).
 
 // Styling for the items on the list

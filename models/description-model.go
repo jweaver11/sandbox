@@ -59,6 +59,9 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "tab":
 			return CreateProjectViewModel(), nil
+
+		default:
+			return d, cmd
 		}
 	}
 	// Returns our updated model with no command
@@ -75,9 +78,11 @@ func (d DescriptionModel) View() string {
 	// And can add one background/border too in the end
 	var finalStr string
 
+	finalStr += "\n"
+
 	// Renders the header
-	finalStr += styling.HeaderStyle.Render("Projects")
-	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Width(20).Render("Descriptions")
+	finalStr += styling.HeaderStyle.UnsetForeground().Render("Projects")
+	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Descriptions")
 
 	finalStr += "\n\n"
 
