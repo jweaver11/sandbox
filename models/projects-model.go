@@ -195,7 +195,7 @@ func (p ProjectViewModel) View() string {
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
-	height := 7 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
+	height := 11 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
 
 	// Adds the helpview which includes the paginator to our string
 	finalStr += "\n" + strings.Repeat("\n", height) + fullHelpView

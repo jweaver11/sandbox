@@ -36,6 +36,8 @@ func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 		description = "Project 6 Description"
 	case 6:
 		description = "Project 7 Description"
+	case 7:
+		description = "Project 8 description"
 
 	default:
 		description = "No Project selected"
