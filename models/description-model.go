@@ -9,23 +9,41 @@ import (
 )
 
 type DescriptionModel struct {
-	descriptions []string
-	width        int
-	height       int
+	project     string
+	description string
+	width       int
+	height      int
+	selected    int
 }
 
-func CreateDescriptionModel() DescriptionModel {
-	var descriptions []string
+func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
+	var description string
 
-	descriptions = []string{
-		"Dank Pirates",
-		"Gay Harambe NFT's",
-		"Description of Dank Project",
-		"Is Badass",
+	project := projectName
+
+	switch cursor {
+	case 0:
+		description = "Project 1 Description"
+	case 1:
+		description = "Project 2 Description"
+	case 2:
+		description = "Project 3 Description"
+	case 3:
+		description = "Project 4 Description"
+	case 4:
+		description = "Project 5 Description"
+	case 5:
+		description = "Project 6 Description"
+	case 6:
+		description = "Project 7 Description"
+
+	default:
+		description = "No Project selected"
 	}
 
 	return DescriptionModel{
-		descriptions: descriptions,
+		project:     project,
+		description: description,
 	}
 }
 
@@ -86,9 +104,7 @@ func (d DescriptionModel) View() string {
 
 	finalStr += "\n\n"
 
-	for _, item := range d.descriptions {
-		finalStr += styling.ItemStyle.Render(item) + "\n\n"
-	}
+	finalStr += styling.ItemStyle.Render(d.description) + "\n\n"
 
 	// Runs our complete string through the border/background styling
 	completeModel := styling.Background.Width(d.width).Height(d.height).Render(finalStr)

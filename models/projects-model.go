@@ -119,7 +119,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.help.ShowAll = !p.help.ShowAll
 
 		case "tab":
-			return CreateDescriptionModel(), nil
+			return CreateDescriptionModel(p.items[p.cursor], p.cursor), nil
 		}
 	}
 
