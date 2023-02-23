@@ -13,13 +13,13 @@ type keyMap struct {
 	Right key.Binding
 	Help  key.Binding
 	Quit  key.Binding
-	Tab   key.Binding
+	Space key.Binding
 }
 
 // Built in function from the help package that shows our mini help view at the bottom of our active model
 // It is part of the key.Map interface
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Tab, k.Help, k.Quit}
+	return []key.Binding{k.Space, k.Help, k.Quit}
 }
 
 // Built in function from the help package that shows our full help view at the bottom of our active model
@@ -27,7 +27,7 @@ func (k keyMap) ShortHelp() []key.Binding {
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right}, // first column
-		{k.Tab, k.Help, k.Quit},         // second column
+		{k.Space, k.Help, k.Quit},       // second column
 	}
 }
 
@@ -57,8 +57,8 @@ var keys = keyMap{
 		key.WithKeys("q", "ctrl+c", "esc"),
 		key.WithHelp("q", "quit"),
 	),
-	Tab: key.NewBinding(
-		key.WithKeys("tab"),
-		key.WithHelp("tab", "Description Page"),
+	Space: key.NewBinding(
+		key.WithKeys("space"),
+		key.WithHelp("space", "description"),
 	),
 }

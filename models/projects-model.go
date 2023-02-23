@@ -43,7 +43,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	//items = []string{"Pirates of the Cryptobbean", "Haramgay", "Another Dank Project here", "Midget Wrestling"}
 	//shortDesc = []string{"Dank Pirates", "Gay Harambe NFT's", "Description of Dank Project", "Is Badass"}
 
-	for i := 0; i < 35; i++ {
+	for i := 1; i < 36; i++ {
 		text := fmt.Sprintf("Project: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
@@ -102,14 +102,41 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Moves the cursor up
 		case "up":
-			if p.cursor > 0 {
-				p.cursor--
+			// If cursor above first item
+			if p.cursor > -1 {
+				// If on first page and cursor on first item, do nothing
+				if p.paginator.Page == 0 && p.cursor == 0 {
+
+					// Otherwise move cursor up
+				} else {
+					p.cursor--
+				}
+			}
+			// Moving cursor up whn on first item of page that is not the first, change page to previous one
+			if p.cursor == -1 {
+				p.paginator.PrevPage()
+				p.cursor = 7
 			}
 
-		// Moves the cursor up
+		// Moves the cursor down
 		case "down":
-			if p.cursor < 7 {
-				p.cursor++
+			// If cursor below last item on page
+			if p.cursor < 8 {
+				// Checks if on last page
+				if p.paginator.OnLastPage() == true {
+					// Only moves cursor down if cursor is not on last item
+					if p.cursor < (len(p.items)%p.paginator.PerPage - 1) {
+						p.cursor++
+					}
+					// If not on last page move the cursor down
+				} else {
+					p.cursor++
+				}
+			}
+			// Move cursor to next page if on last item of page
+			if p.cursor == 8 {
+				p.paginator.NextPage()
+				p.cursor = 0
 			}
 
 		// Return description of highlighted project
@@ -118,7 +145,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
-		case "tab":
+		case " ":
 			return CreateDescriptionModel(p.items[p.cursor], p.cursor), nil
 		}
 	}

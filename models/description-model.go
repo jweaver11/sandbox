@@ -72,10 +72,10 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Converts the messages to string so we can see which key was pressed
 		switch msg.String() {
-		case "ctrl+c", "q", "esc":
+		case "ctrl+c", "q":
 			return d, tea.Quit
 
-		case "tab":
+		case "esc", " ":
 			return CreateProjectViewModel(), nil
 
 		default:
