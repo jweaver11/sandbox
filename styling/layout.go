@@ -9,7 +9,6 @@ var HeaderStyle = lipgloss.NewStyle().
 	Bold(true).
 	PaddingLeft(3).
 	PaddingRight(8)
-	//Foreground(lipgloss.Color("#7D56F4")).
 
 // Styling for the items on the list
 var ItemStyle = lipgloss.NewStyle().

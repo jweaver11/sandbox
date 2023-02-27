@@ -3,9 +3,16 @@ package main
 import (
 	"sandbox/styling"
 	"strings"
+	"time"
 
+	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	padding  = 2  // Universal padding
+	maxWidth = 80 // Universal width
 )
 
 type DescriptionModel struct {
@@ -14,7 +21,12 @@ type DescriptionModel struct {
 	width       int
 	height      int
 	selected    int
+	progressBar progress.Model // Progress bar
 }
+
+// Time variable that returns a message every tick
+// We set every tick to one second
+type tickMsg time.Time
 
 func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 	var description string
@@ -46,14 +58,21 @@ func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 	return DescriptionModel{
 		project:     project,
 		description: description,
+		progressBar: progress.New(progress.WithDefaultGradient()),
 	}
+}
+
+func tickCmd() tea.Cmd {
+	return tea.Tick(time.Second*1, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
 }
 
 // ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
 // Initializes the model at start of program.
 // Returns a command if there is one
 func (d DescriptionModel) Init() tea.Cmd {
-	return nil
+	return tickCmd()
 }
 
 // Runs whenever there is an update or event
@@ -69,6 +88,13 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		d.width = msg.Width - 6
 		d.height = msg.Height - 6
 
+		// Sets the progress bar width
+		// If its bigger than the window, then it sets it to the size of the window
+		d.progressBar.Width = msg.Width - padding*2 - 4
+		if d.progressBar.Width > maxWidth {
+			d.progressBar.Width = maxWidth
+		}
+
 	// Handles key press events
 	case tea.KeyMsg:
 
@@ -80,12 +106,32 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc", " ":
 			return CreateProjectViewModel(), nil
 
+		case "up", "right":
+			barUp := d.progressBar.IncrPercent(0.2)
+			return d, tea.Batch(tickCmd(), barUp)
+
+		case "down", "left":
+			barDown := d.progressBar.DecrPercent(0.2)
+			return d, tea.Batch(tickCmd(), barDown)
+
 		default:
 			return d, cmd
 		}
+
+		// Returns every tick
+	case tickMsg:
+
+	// FrameMsg is sent when the progress bar wants to animate itself
+	case progress.FrameMsg:
+		progressModel, cmd := d.progressBar.Update(msg)
+		d.progressBar = progressModel.(progress.Model)
+		return d, cmd
+
+	default:
+		return d, nil
 	}
-	// Returns our updated model with no command
-	return d, cmd
+
+	return d, nil
 }
 
 // Renders the view so the user can see the updated model
@@ -106,7 +152,9 @@ func (d DescriptionModel) View() string {
 
 	finalStr += "\n\n"
 
-	finalStr += styling.ItemStyle.Render(d.description) + "\n\n"
+	finalStr += styling.ItemStyle.Render(d.description) + "\n\n\n"
+
+	finalStr += d.progressBar.View()
 
 	// Runs our complete string through the border/background styling
 	completeModel := styling.Background.Width(d.width).Height(d.height).Render(finalStr)
