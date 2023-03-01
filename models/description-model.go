@@ -33,27 +33,7 @@ func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 
 	project := projectName
 
-	switch cursor {
-	case 0:
-		description = "Project 1 Description"
-	case 1:
-		description = "Project 2 Description"
-	case 2:
-		description = "Project 3 Description"
-	case 3:
-		description = "Project 4 Description"
-	case 4:
-		description = "Project 5 Description"
-	case 5:
-		description = "Project 6 Description"
-	case 6:
-		description = "Project 7 Description"
-	case 7:
-		description = "Project 8 description"
-
-	default:
-		description = "No Project selected"
-	}
+	description = projectName + " Description biaaaatch"
 
 	return DescriptionModel{
 		project:     project,
@@ -148,11 +128,11 @@ func (d DescriptionModel) View() string {
 
 	// Renders the header
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Projects")
-	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Descriptions")
+	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Descriptions") + "\n\n"
 
-	finalStr += "\n\n"
+	finalStr += styling.ItemStyle.Foreground(lipgloss.Color("12")).Render(d.project)
 
-	finalStr += styling.ItemStyle.Render(d.description) + "\n\n\n"
+	finalStr += styling.LongDescStyle.Render(d.description) + "\n\n\n"
 
 	finalStr += d.progressBar.View()
 

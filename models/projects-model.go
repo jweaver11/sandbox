@@ -147,7 +147,8 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.help.ShowAll = !p.help.ShowAll
 
 		case " ":
-			return CreateDescriptionModel(p.items[p.cursor], p.cursor), nil
+			// Switches to description page model for the selected project
+			return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)], p.cursor), nil
 		}
 	}
 
@@ -171,9 +172,7 @@ func (p ProjectViewModel) View() string {
 
 	// Renders the header
 	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
-	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions")
-
-	finalStr += "\n\n"
+	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions") + "\n\n"
 
 	// Iterate over the individual projects in items
 	// Using the paginator function GetSliceBounds in order

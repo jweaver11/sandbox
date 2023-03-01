@@ -21,7 +21,8 @@ var ShortDescStyle = lipgloss.NewStyle().
 	PaddingLeft(6)
 
 var LongDescStyle = lipgloss.NewStyle().
-	PaddingLeft(4)
+	PaddingLeft(4).
+	Faint(true)
 
 // Custom border for outside of the TUI
 var FullBorder = lipgloss.Border{
