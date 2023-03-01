@@ -12,8 +12,7 @@ var HeaderStyle = lipgloss.NewStyle().
 
 // Styling for the items on the list
 var ItemStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("12"))
+	Bold(true)
 
 // Styling for the Short Descriptions of the items
 var ShortDescStyle = lipgloss.NewStyle().

@@ -3,8 +3,8 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Make header all fit on one line.
-// Its stuck on limited space for some reason, only the header
+// Add ssh-app main to run server on a local spot
+// Format height and Width better
 
 package main
 
@@ -132,6 +132,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					p.cursor++
 				}
+
 			}
 			// Move cursor to next page if on last item of page
 			if p.cursor == 8 {
@@ -182,11 +183,19 @@ func (p ProjectViewModel) View() string {
 		// Is the cursor pointing at this choice
 		cursor := " " // No cursor
 
+		styling.ItemStyle.UnsetForeground() // Unset the font color by default
+
 		if p.cursor == i {
-			cursor = ">" //Sets cursor as >
+			cursor = ">" // Sets cursor as >
+		}
+
+		// Uses the color style for the selected item
+		if cursor == ">" {
+			styling.ItemStyle.Foreground(lipgloss.Color("12")) // Set Font color
 		}
 
 		// Returns the model as a string, starting with the cursor, the item, then description
+
 		finalStr += cursor + " " + styling.ItemStyle.Render(item) + "  " + styling.ShortDescStyle.Render(p.shortDesc[i]) + "\n\n"
 	}
 
