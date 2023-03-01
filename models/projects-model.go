@@ -3,8 +3,9 @@
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Add ssh-app main to run server on a local spot
+// Add spinner as cursor?
 // Format height and Width better
+// Returns an error if no project selected and try to get view
 
 package main
 
@@ -16,6 +17,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -28,8 +30,10 @@ type ProjectViewModel struct {
 	keys                       keyMap          // Sets a keymap needed to use the help view
 	help                       help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator                  paginator.Model // Adds page scrolling to bottom of page
+	spinner                    spinner.Model   // Adds the spinner to be used as a cursor
 	width                      int
 	height                     int
+	err                        error
 }
 
 // This function is run in main to start a new program
@@ -50,7 +54,12 @@ func CreateProjectViewModel() ProjectViewModel {
 		shortDesc = append(shortDesc, desc)
 	}
 
-	// Initializes the page scrolling for our list of items
+	// SPINNER -- Sets up our spinner
+	s := spinner.New()                                              // Sets s as a new spinner
+	s.Spinner = spinner.Pulse                                       // Sets the dots style spinner
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205")) // Sets the spinner color
+
+	// PAGINATOR -- Initializes the page scrolling for our list of items
 	p := paginator.New()    // Sets p as a new paginator we can return later
 	p.Type = paginator.Dots // Renders dots for our itmes
 	p.PerPage = 8           // Items per page
@@ -68,6 +77,7 @@ func CreateProjectViewModel() ProjectViewModel {
 		keys:      keys,
 		help:      help.New(),
 		paginator: p,
+		spinner:   s,
 	}
 }
 
@@ -75,13 +85,14 @@ func CreateProjectViewModel() ProjectViewModel {
 // Initializes the model at start of program.
 // Returns a command if there is one
 func (p ProjectViewModel) Init() tea.Cmd {
-	return nil
+	return p.spinner.Tick // Sets up the spinner
 }
 
 // Runs whenever there is an update or event
 func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	//Sets the msg to types
 	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
@@ -91,6 +102,12 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.help.Width = msg.Width
 		p.width = msg.Width - 2
 		p.height = msg.Height - 2
+
+	// update the spinner
+	case spinner.TickMsg:
+		s, cmd := p.spinner.Update(msg)
+		p.spinner = s
+		return p, cmd
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -150,6 +167,9 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Switches to description page model for the selected project
 			return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)], p.cursor), nil
 		}
+
+	default:
+		p.spinner, cmd = p.spinner.Update(msg)
 	}
 
 	p.paginator, cmd = p.paginator.Update(msg)
@@ -185,7 +205,7 @@ func (p ProjectViewModel) View() string {
 		styling.ItemStyle.UnsetForeground() // Unset the font color by default
 
 		if p.cursor == i {
-			cursor = ">" // Sets cursor as >
+			cursor = p.spinner.View() // Sets cursor as the spinner
 		}
 
 		// Uses the color style for the selected item
