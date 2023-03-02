@@ -1,10 +1,8 @@
 // OPEN SANDBOX PROGRAM WITH THE GOALS OF ADDING ITEMS TO A LIST, AND BEING ABLE TO SELECT THEM TO PRESENT A DIFFERENT
-// MODEL DESCRIBING THE ITEM
-// https://github.com/charmbracelet/bubbletea/tree/master/tutorials/basics
 
 // TASKS:
-// Add spinner as cursor?
 // Format height and Width better
+// Spinner freezes after model switch
 // Returns an error if no project selected and try to get view
 
 package main
@@ -55,8 +53,10 @@ func CreateProjectViewModel() ProjectViewModel {
 	}
 
 	// SPINNER -- Sets up our spinner
-	s := spinner.New()                                              // Sets s as a new spinner
-	s.Spinner = spinner.Pulse                                       // Sets the dots style spinner
+	s := spinner.New() // Sets s as a new spinner
+	s.Tick()
+	s.Tick()
+	s.Spinner = spinner.Dot                                         // Sets the dots style spinner
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205")) // Sets the spinner color
 
 	// PAGINATOR -- Initializes the page scrolling for our list of items
@@ -67,7 +67,9 @@ func CreateProjectViewModel() ProjectViewModel {
 		lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•") // Selected page formatting
 	p.InactiveDot = lipgloss.NewStyle().Foreground(
 		lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•") // Non-selected pages formatting
-	p.SetTotalPages(len(items))
+	p.SetTotalPages(len(items)) // Sets the total number of pages
+	p.KeyMap.NextPage.Unbind()  // Unbinds the Next page command so we can customize it ourselves
+	p.KeyMap.PrevPage.Unbind()  // Unbinds the Prev page command so we can customize it ourselves
 
 	// Returns our model
 	return ProjectViewModel{
@@ -103,9 +105,9 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.width = msg.Width - 2
 		p.height = msg.Height - 2
 
-	// update the spinner
-	case spinner.TickMsg:
+	case spinner.TickMsg: // update the spinner
 		s, cmd := p.spinner.Update(msg)
+		s.Tick()
 		p.spinner = s
 		return p, cmd
 
@@ -145,47 +147,57 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if p.cursor < (len(p.items)%p.paginator.PerPage - 1) {
 						p.cursor++
 					}
-					// If not on last page move the cursor down
-				} else {
+
+				} else { // If not on last page move the cursor down
 					p.cursor++
 				}
 
 			}
-			// Move cursor to next page if on last item of page
-			if p.cursor == 8 {
+
+			if p.cursor == 8 { // Move cursor to next page if on last item of page
 				p.paginator.NextPage()
 				p.cursor = 0
 			}
+		// Move to Previous page
+		case "left":
+			p.paginator.PrevPage()
 
-		// Return description of highlighted project
+		// Moves to next page
+		case "right":
+			p.paginator.NextPage()
+
+			if p.paginator.OnLastPage() && p.cursor > 3 { // Moves cursor to last item if there are item ...
+				p.cursor = 2 // 						..Not enough items on last page
+			}
 
 		// Toggles the help view between mini and full view
 		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
+		// Switches to description page model for the selected project if space is pressed
 		case " ":
-			// Switches to description page model for the selected project
-			return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)], p.cursor), nil
+			if p.cursor > len(p.items)%p.paginator.PerPage && p.paginator.OnLastPage() { // Error handling
+				return p, nil
+			} else {
+				return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)], p.cursor), p.spinner.Tick
+			}
 		}
-
-	default:
-		p.spinner, cmd = p.spinner.Update(msg)
 	}
 
+	// Updates spinner and paginator
+	p.spinner, cmd = p.spinner.Update(msg)
 	p.paginator, cmd = p.paginator.Update(msg)
 
-	// Returns our updated model with no command
+	// Returns our updated model with any commands
 	return p, cmd
 }
 
 // Renders the view so the user can see the updated model
 func (p ProjectViewModel) View() string {
-	// Sets s as a string builder to return out entire model
-	// Will return as a string later
+	// Sets s as a string builder needed for paginator
 	var s strings.Builder
 
-	// A final string that is used to format all the styles
-	// And can add one background/border too in the end
+	// A final string that is used to pass styles onto it
 	var finalStr string
 
 	finalStr += "\n"
@@ -195,30 +207,27 @@ func (p ProjectViewModel) View() string {
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions") + "\n\n"
 
 	// Iterate over the individual projects in items
-	// Using the paginator function GetSliceBounds in order
-	// To actually use the page limitations set earlier
-	start1, end1 := p.paginator.GetSliceBounds(len(p.items))
-	for i, item := range p.items[start1:end1] {
-		// Is the cursor pointing at this choice
-		cursor := " " // No cursor
+	// Using the paginator function GetSliceBounds
+	start, end := p.paginator.GetSliceBounds(len(p.items))
+	for i, item := range p.items[start:end] {
 
 		styling.ItemStyle.UnsetForeground() // Unset the font color by default
+
+		cursor := " " // Sets cursor as blank by default
 
 		if p.cursor == i {
 			cursor = p.spinner.View() // Sets cursor as the spinner
 		}
 
-		// Uses the color style for the selected item
-		if cursor == ">" {
-			styling.ItemStyle.Foreground(lipgloss.Color("12")) // Set Font color
+		if cursor == p.spinner.View() { // Checks where cursor is selecting
+			styling.ItemStyle.Foreground(lipgloss.Color("12")) // Set font color of Project Name if selected by cursor
 		}
 
 		// Returns the model as a string, starting with the cursor, the item, then description
-
 		finalStr += cursor + " " + styling.ItemStyle.Render(item) + "  " + styling.ShortDescStyle.Render(p.shortDesc[i]) + "\n\n"
 	}
 
-	// Sets a variable fullHelpView as a string to return our pages menu help view,
+	// Sets a variable fullHelpView as a string to return our pages menu help view...
 	// Which is managed automatically by the help package
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 

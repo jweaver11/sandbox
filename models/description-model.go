@@ -84,7 +84,7 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return d, tea.Quit
 
 		case "esc", " ":
-			return CreateProjectViewModel(), nil
+			return CreateProjectViewModel(), cmd
 
 		case "up", "right":
 			barUp := d.progressBar.IncrPercent(0.2)
@@ -97,9 +97,6 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			return d, cmd
 		}
-
-		// Returns every tick
-	case tickMsg:
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
