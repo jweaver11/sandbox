@@ -129,7 +129,7 @@ func (d DescriptionModel) View() string {
 
 	finalStr += styling.ItemStyle.Foreground(lipgloss.Color("12")).Render(d.project)
 
-	finalStr += styling.LongDescStyle.Render(d.description) + "\n\n\n"
+	finalStr += styling.FullDescStyle.Render(d.description) + "\n\n\n"
 
 	finalStr += d.progressBar.View()
 

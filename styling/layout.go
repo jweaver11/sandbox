@@ -20,23 +20,23 @@ var ShortDescStyle = lipgloss.NewStyle().
 	Faint(true).
 	PaddingLeft(6)
 
-var LongDescStyle = lipgloss.NewStyle().
+// Styling for full Descriptions for description model
+var FullDescStyle = lipgloss.NewStyle().
 	PaddingLeft(4).
 	Faint(true)
 
-// Custom border for outside of the TUI
-var FullBorder = lipgloss.Border{
-	Top:         "._.:*:",
-	Bottom:      "._.:*:",
-	Left:        "|*",
-	Right:       "|*",
-	TopLeft:     "*",
-	TopRight:    "*",
-	BottomLeft:  "*",
-	BottomRight: "*",
-}
+// Active dot of the paginator
+var ActiveDotStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"})
 
-// Border doesnt work correctly when models are re-loaded
+// Inactive dot of the paginator
+var InactiveDotStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"})
+
+// Spinner Style
+var SpinnerStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("205"))
+
+// Formatting to run final model through to add padding
 var Background = lipgloss.NewStyle().
-	//Border(lipgloss.DoubleBorder()).
 	PaddingLeft(4)
