@@ -3,7 +3,6 @@
 // TASKS:
 // Format height and Width better
 // Spinner freezes after model switch
-// Returns an error if no project selected and try to get view
 
 package main
 
@@ -60,7 +59,7 @@ func CreateProjectViewModel() ProjectViewModel {
 	p.InactiveDot = styling.InactiveDotStyle.Render("•") // Non-selected pages formatting
 	p.SetTotalPages(len(items))                          // Sets the total number of pages
 	p.KeyMap.NextPage.Unbind()                           // Unbinds the Next page command so we can customize it ourselves
-	p.KeyMap.PrevPage.Unbind()                           // Unbinds the Prev page command so we can customize it ourselves
+	p.KeyMap.PrevPage.Unbind()                           // Unbinds the Prev page command so we can customize it
 
 	// Returns our model
 	return ProjectViewModel{
@@ -76,7 +75,7 @@ func CreateProjectViewModel() ProjectViewModel {
 // ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
 // Initializes the model at start of program and returns a command if there is one
 func (p ProjectViewModel) Init() tea.Cmd {
-	return p.spinner.Tick // Sets up the spinner
+	return p.spinner.Tick // Starts the spinner when program starts
 }
 
 // Runs whenever there is an update or event
@@ -191,8 +190,6 @@ func (p ProjectViewModel) View() string {
 
 	// A final string that is used to pass styles onto it
 	var finalStr string
-
-	finalStr += "\n"
 
 	// Renders the header
 	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
