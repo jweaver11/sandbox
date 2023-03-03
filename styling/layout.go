@@ -39,4 +39,5 @@ var SpinnerStyle = lipgloss.NewStyle().
 
 // Formatting to run final model through to add padding
 var Background = lipgloss.NewStyle().
-	PaddingLeft(4)
+	PaddingLeft(4).
+	PaddingTop(1)
