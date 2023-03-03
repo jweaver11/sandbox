@@ -35,7 +35,7 @@ var InactiveDotStyle = lipgloss.NewStyle().
 
 // Spinner Style
 var SpinnerStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("205"))
+	Foreground(lipgloss.Color("12"))
 
 // Formatting to run final model through to add padding
 var Background = lipgloss.NewStyle().
