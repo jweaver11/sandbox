@@ -16,25 +16,21 @@ const (
 )
 
 type DescriptionModel struct {
-	project     string
-	description string
-	width       int
-	height      int
-	selected    int
+	project     string         // Projects name
+	description string         // Projects description
+	width       int            // Width of model
+	height      int            // Height of Model
 	progressBar progress.Model // Progress bar
 }
 
-// Time variable that returns a message every tick
-// We set every tick to one second
-type tickMsg time.Time
-
+// Creates our defined model with actual values and then returns its
 func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
-	var description string
 
+	// Sets our project name and description that are passed when model is built
 	project := projectName
+	description := projectName + " Description biaaaatch"
 
-	description = projectName + " Description biaaaatch"
-
+	// Returns our model
 	return DescriptionModel{
 		project:     project,
 		description: description,
@@ -42,31 +38,36 @@ func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 	}
 }
 
+// ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
+// Initializes the model at start of program.
+func (d DescriptionModel) Init() tea.Cmd {
+	return tickCmd() // Returns our tick command used for the progress bar
+}
+
+// Time variable that returns a message every tick
+type tickMsg time.Time
+
+// tickCmd returns a tea command every second
 func tickCmd() tea.Cmd {
 	return tea.Tick(time.Second*1, func(t time.Time) tea.Msg {
 		return tickMsg(t)
 	})
 }
 
-// ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
-// Initializes the model at start of program.
-// Returns a command if there is one
-func (d DescriptionModel) Init() tea.Cmd {
-	return tickCmd()
-}
-
 // Runs whenever there is an update or event
 func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//Sets the msg to types
+
+	// Sets the cmd for easy return later
 	var cmd tea.Cmd
+
+	// Sets switch cases for the msg, which is the key press
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		// If we set a width on the help menu it can it can gracefully truncate
-		// its view as needed.
-		// Sets the height and width of terminal so the border shows correctly
-		d.width = msg.Width - 6
-		d.height = msg.Height - 6
+
+		// Sets the help model and main model width for sizing later
+		d.width = msg.Width - 2
+		d.height = msg.Height - 2
 
 		// Sets the progress bar width
 		// If its bigger than the window, then it sets it to the size of the window
@@ -83,13 +84,16 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return d, tea.Quit
 
+		// When esc or space pressed, return ProjectViewModel
 		case "esc", " ":
 			return CreateProjectViewModel(), cmd
 
+		// When up or right arrow pressed, move progress bar up
 		case "up", "right":
 			barUp := d.progressBar.IncrPercent(0.2)
 			return d, tea.Batch(tickCmd(), barUp)
 
+		// When down or left arrow presseed, move progress bar down
 		case "down", "left":
 			barDown := d.progressBar.DecrPercent(0.2)
 			return d, tea.Batch(tickCmd(), barDown)
@@ -113,24 +117,23 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // Renders the view so the user can see the updated model
 func (d DescriptionModel) View() string {
-	// Sets s as a string builder to return out entire model
-	// Will return as a string later
+	// Sets s as a string builder needed for paginator
 	var s strings.Builder
 
-	// A final string that is used to format all the styles
-	// And can add one background/border too in the end
+	// A final string that is used to pass styles onto it
 	var finalStr string
-
-	finalStr += "\n"
 
 	// Renders the header
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Projects")
 	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Descriptions") + "\n\n"
 
+	// Adds the project name
 	finalStr += styling.ItemStyle.Foreground(lipgloss.Color("12")).Render(d.project)
 
+	// Adds the project description
 	finalStr += styling.FullDescStyle.Render(d.description) + "\n\n\n"
 
+	// Adds the progress bar
 	finalStr += d.progressBar.View()
 
 	// Runs our complete string through the border/background styling
