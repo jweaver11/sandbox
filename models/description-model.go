@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sandbox/styling"
 	"strings"
 	"time"
@@ -11,8 +12,9 @@ import (
 )
 
 const (
-	padding  = 2  // Universal padding
-	maxWidth = 80 // Universal width
+	padding   = 2   // Universal padding
+	maxWidth  = 133 // Width of terminal at full screen -- just on my laptop??
+	maxHeight = 33  // Height of terminal at full screen
 )
 
 type DescriptionModel struct {
@@ -29,6 +31,8 @@ func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
 	// Sets our project name and description that are passed when model is built
 	project := projectName
 	description := projectName + " Description biaaaatch"
+
+	tickCmd()
 
 	// Returns our model
 	return DescriptionModel{
@@ -63,18 +67,16 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Sets switch cases for the msg, which is the key press
 	switch msg := msg.(type) {
 
+	// Doesnt run on first start up since its switched to this model
 	case tea.WindowSizeMsg:
 
 		// Sets the help model and main model width for sizing later
-		d.width = msg.Width - 2
-		d.height = msg.Height - 2
+		d.width = msg.Width
+		d.height = msg.Height
 
 		// Sets the progress bar width
 		// If its bigger than the window, then it sets it to the size of the window
-		d.progressBar.Width = msg.Width - padding*2 - 4
-		if d.progressBar.Width > maxWidth {
-			d.progressBar.Width = maxWidth
-		}
+		d.progressBar.Width = d.width - padding
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -97,6 +99,9 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "left":
 			barDown := d.progressBar.DecrPercent(0.2)
 			return d, tea.Batch(tickCmd(), barDown)
+
+		case "p":
+			fmt.Println(d.width)
 
 		default:
 			return d, cmd
