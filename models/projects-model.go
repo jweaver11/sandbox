@@ -28,8 +28,6 @@ type ProjectViewModel struct {
 	help                help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
 	paginator           paginator.Model // Adds page scrolling to bottom of page
 	spinner             spinner.Model   // Adds the spinner to be used as a cursor
-	width               int             // Used to set the width of the page later
-	height              int             // Used to set the height of the page later
 	err                 error           // Error that can be returned
 }
 
@@ -91,13 +89,10 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Sets the help model and main model width for sizing later
 		p.help.Width = msg.Width
-		p.width = msg.Width - 2
-		p.height = msg.Height - 2
 
 	// Evertime the spinner ticks, so every second
 	case spinner.TickMsg:
 		s, cmd := p.spinner.Update(msg) // Update the spinner
-		s.Tick()
 		p.spinner = s
 		return p, cmd
 
@@ -170,8 +165,12 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if p.cursor > len(p.items)%p.paginator.PerPage && p.paginator.OnLastPage() { // Prevent error if no project selected
 				return p, nil
 			} else {
-				return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)], p.cursor), cmd
+				cmd = tea.Batch(tea.ClearScreen, tea.EnterAltScreen)
+				return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)]), cmd
 			}
+
+		case "p":
+
 		}
 	}
 
@@ -222,13 +221,15 @@ func (p ProjectViewModel) View() string {
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
-	height := 11 - strings.Count("0", "\n") - strings.Count(fullHelpView, "\n")
+	height := maxHeight - strings.Count(fullHelpView, "\n")
+	height -= strings.Count(finalStr, "\n") + 2 // Subtracks the nunmber of lines currently take up by the final string
+	height -= strings.Count("0", "\n")          // Subtracts the remaining new lines before end of terminal
 
 	// Adds the helpview which includes the paginator to our string
-	finalStr += "\n" + strings.Repeat("\n", height) + fullHelpView
+	finalStr += strings.Repeat("\n", height) + styling.HelpBarStyle.Render(fullHelpView)
 
 	// Runs our complete string through the border/background styling
-	completeModel := styling.Background.Width(p.width).Height(p.height).Render(finalStr)
+	completeModel := styling.Background.Width(maxWidth).Height(maxHeight).Render(finalStr)
 
 	//returns our completed model as a string
 	s.WriteString(completeModel)
