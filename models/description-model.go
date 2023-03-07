@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sandbox/styling"
 	"strings"
 	"time"
@@ -20,8 +19,6 @@ const (
 type DescriptionModel struct {
 	project     string         // Projects name
 	description string         // Projects description
-	width       int            // Width of model
-	height      int            // Height of Model
 	progressBar progress.Model // Progress bar
 }
 
@@ -69,12 +66,10 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 
 		// Sets the help model and main model width for sizing later
-		d.width = msg.Width
-		d.height = msg.Height
 
 		// Sets the progress bar width
 		// If its bigger than the window, then it sets it to the size of the window
-		d.progressBar.Width = d.width - padding
+		d.progressBar.Width = maxWidth - padding
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -98,9 +93,6 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "left":
 			barDown := d.progressBar.DecrPercent(0.2)
 			return d, tea.Batch(tickCmd(), barDown)
-
-		case "p":
-			fmt.Println(d.width)
 
 		default:
 			return d, cmd
@@ -143,7 +135,7 @@ func (d DescriptionModel) View() string {
 	finalStr += strings.Repeat("\n", height) + styling.ProgressBarStyle.Render(d.progressBar.View())
 
 	// Runs our complete string through the border/background styling
-	completeModel := styling.Background.Width(d.width).Height(d.height).Render(finalStr)
+	completeModel := styling.Background.Width(maxWidth).Height(maxHeight).Render(finalStr)
 
 	//returns our completed model as a string
 	s.WriteString(completeModel)

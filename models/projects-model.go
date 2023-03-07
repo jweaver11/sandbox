@@ -1,7 +1,7 @@
 // OPEN SANDBOX PROGRAM WITH THE GOALS OF ADDING ITEMS TO A LIST, AND BEING ABLE TO SELECT THEM TO PRESENT A DIFFERENT
 
 // TASKS:
-// Format height and Width better
+// Format height and Width to adjust with window
 // Spinner freezes after model switch
 
 package main
@@ -222,7 +222,7 @@ func (p ProjectViewModel) View() string {
 
 	// Sets the height as an int the counts all lines, even empty ones
 	height := maxHeight - strings.Count(fullHelpView, "\n")
-	height -= strings.Count(finalStr, "\n") + 2 // Subtracks the nunmber of lines currently take up by the final string
+	height -= strings.Count(finalStr, "\n") + 4 // Subtracks the nunmber of lines currently take up by the final string
 	height -= strings.Count("0", "\n")          // Subtracts the remaining new lines before end of terminal
 
 	// Adds the helpview which includes the paginator to our string
