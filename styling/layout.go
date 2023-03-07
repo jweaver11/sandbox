@@ -37,6 +37,15 @@ var InactiveDotStyle = lipgloss.NewStyle().
 var SpinnerStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("12"))
 
+// Progress Bar Style
+var ProgressBarStyle = lipgloss.NewStyle().
+	PaddingLeft(50)
+
+// Help Bar Style
+var HelpBarStyle = lipgloss.NewStyle().
+	PaddingLeft(2).
+	PaddingBottom(1)
+
 // Formatting to run final model through to add padding
 var Background = lipgloss.NewStyle().
 	PaddingLeft(4).
