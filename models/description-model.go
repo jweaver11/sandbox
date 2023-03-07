@@ -26,13 +26,11 @@ type DescriptionModel struct {
 }
 
 // Creates our defined model with actual values and then returns its
-func CreateDescriptionModel(projectName string, cursor int) DescriptionModel {
+func CreateDescriptionModel(projectName string) DescriptionModel {
 
 	// Sets our project name and description that are passed when model is built
 	project := projectName
 	description := projectName + " Description biaaaatch"
-
-	tickCmd()
 
 	// Returns our model
 	return DescriptionModel{
@@ -88,6 +86,7 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// When esc or space pressed, return ProjectViewModel
 		case "esc", " ":
+			cmd = tea.Batch(tea.ClearScreen, tea.EnterAltScreen)
 			return CreateProjectViewModel(), cmd
 
 		// When up or right arrow pressed, move progress bar up
@@ -136,10 +135,12 @@ func (d DescriptionModel) View() string {
 	finalStr += styling.ItemStyle.Foreground(lipgloss.Color("12")).Render(d.project)
 
 	// Adds the project description
-	finalStr += styling.FullDescStyle.Render(d.description) + "\n\n\n"
+	finalStr += styling.FullDescStyle.Render(d.description)
 
-	// Adds the progress bar
-	finalStr += d.progressBar.View()
+	// Sets the height == to max height - each new line in the finalStr
+	height := maxHeight - strings.Count(finalStr, "\n") - 2
+
+	finalStr += strings.Repeat("\n", height) + styling.ProgressBarStyle.Render(d.progressBar.View())
 
 	// Runs our complete string through the border/background styling
 	completeModel := styling.Background.Width(d.width).Height(d.height).Render(finalStr)
