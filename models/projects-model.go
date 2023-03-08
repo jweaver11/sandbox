@@ -73,7 +73,8 @@ func CreateProjectViewModel() ProjectViewModel {
 // ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
 // Initializes the model at start of program and returns a command if there is one
 func (p ProjectViewModel) Init() tea.Cmd {
-	return p.spinner.Tick // Starts the spinner when program starts
+	// return p.spinner.Tick // Starts the spinner when program starts
+	return nil
 }
 
 // Runs whenever there is an update or event
@@ -152,7 +153,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.paginator.NextPage()
 
 			// If cursor below last item on last page, put it on last item
-			if p.paginator.OnLastPage() && p.cursor > len(p.items)%p.paginator.PerPage {
+			if p.paginator.OnLastPage() && p.cursor >= len(p.items)%p.paginator.PerPage {
 				p.cursor = 2
 			}
 
@@ -168,8 +169,6 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = tea.Batch(tea.ClearScreen, tea.EnterAltScreen)
 				return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)]), cmd
 			}
-
-		case "p":
 
 		}
 	}
