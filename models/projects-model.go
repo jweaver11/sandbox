@@ -1,7 +1,9 @@
 // OPEN SANDBOX PROGRAM WITH THE GOALS OF ADDING ITEMS TO A LIST, AND BEING ABLE TO SELECT THEM TO PRESENT A DIFFERENT
 
 // TASKS:
-// Format height and Width to adjust with window
+// Model breaks if terminal gets too small
+// Have per page and number of pages adjust if needed on terminal resize
+// Height x 2 or 3 of per page
 // Spinner freezes after model switch
 
 package main
@@ -17,6 +19,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"golang.org/x/term"
 )
 
 // Sets the Projects as a struct
@@ -29,6 +32,8 @@ type ProjectViewModel struct {
 	paginator           paginator.Model // Adds page scrolling to bottom of page
 	spinner             spinner.Model   // Adds the spinner to be used as a cursor
 	err                 error           // Error that can be returned
+	termWidth           int
+	termHeight          int
 }
 
 // Creates our defined model with actual values and then returns it
@@ -43,6 +48,7 @@ func CreateProjectViewModel() ProjectViewModel {
 		items = append(items, text)
 		descriptions = append(descriptions, desc)
 	}
+	TW, TH, _ := term.GetSize(0)
 
 	// SPINNER -- Sets up our spinner
 	s := spinner.New()             // Sets s as a new spinner
@@ -67,6 +73,8 @@ func CreateProjectViewModel() ProjectViewModel {
 		help:         help.New(),
 		paginator:    p,
 		spinner:      s,
+		termWidth:    TW,
+		termHeight:   TH,
 	}
 }
 
@@ -90,6 +98,9 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Sets the help model and main model width for sizing later
 		p.help.Width = msg.Width
+
+		// Resizes the model everytime the window size changes
+		p.termWidth, p.termHeight, _ = term.GetSize(0)
 
 	// Evertime the spinner ticks, so every second
 	case spinner.TickMsg:
@@ -220,7 +231,7 @@ func (p ProjectViewModel) View() string {
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
-	height := maxHeight - strings.Count(fullHelpView, "\n")
+	height := p.termHeight - strings.Count(fullHelpView, "\n")
 	height -= strings.Count(finalStr, "\n") + 4 // Subtracks the nunmber of lines currently take up by the final string
 	height -= strings.Count("0", "\n")          // Subtracts the remaining new lines before end of terminal
 
@@ -228,7 +239,7 @@ func (p ProjectViewModel) View() string {
 	finalStr += strings.Repeat("\n", height) + styling.HelpBarStyle.Render(fullHelpView)
 
 	// Runs our complete string through the border/background styling
-	completeModel := styling.Background.Width(maxWidth).Height(maxHeight).Render(finalStr)
+	completeModel := styling.Background.Width(p.termWidth).Height(p.termHeight).Render(finalStr)
 
 	//returns our completed model as a string
 	s.WriteString(completeModel)
