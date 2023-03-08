@@ -39,7 +39,7 @@ var SpinnerStyle = lipgloss.NewStyle().
 
 // Progress Bar Style
 var ProgressBarStyle = lipgloss.NewStyle().
-	PaddingLeft(50)
+	PaddingLeft(10)
 
 // Help Bar Style
 var HelpBarStyle = lipgloss.NewStyle().
