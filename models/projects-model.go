@@ -32,8 +32,8 @@ type ProjectViewModel struct {
 	paginator           paginator.Model // Adds page scrolling to bottom of page
 	spinner             spinner.Model   // Adds the spinner to be used as a cursor
 	err                 error           // Error that can be returned
-	termWidth           int
-	termHeight          int
+	termWidth           int             // Sets terminal width
+	termHeight          int             // Sets terminal height
 }
 
 // Creates our defined model with actual values and then returns it
@@ -97,7 +97,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 
 		// Sets the help model and main model width for sizing later
-		p.help.Width = msg.Width
+		p.help.Width = msg.Width - styling.HelpBarStyle.GetPaddingLeft()
 
 		// Resizes the model everytime the window size changes
 		p.termWidth, p.termHeight, _ = term.GetSize(0)
@@ -150,7 +150,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// Move cursor to start of next page if on last item
-			if p.cursor == 8 { // Move cursor to next page if on last item of page
+			if p.cursor == p.paginator.PerPage { // Move cursor to next page if on last item of page
 				p.paginator.NextPage()
 				p.cursor = 0
 			}
@@ -165,7 +165,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// If cursor below last item on last page, put it on last item
 			if p.paginator.OnLastPage() && p.cursor >= len(p.items)%p.paginator.PerPage {
-				p.cursor = 2
+				p.cursor = len(p.items)%p.paginator.PerPage - 1
 			}
 
 		// When ? pressed, channge between short help view and full help view
@@ -201,7 +201,7 @@ func (p ProjectViewModel) View() string {
 	var finalStr string
 
 	// Renders the header
-	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
+	finalStr += "\n" + styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Projects")
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions") + "\n\n"
 
 	// Iterate over the individual projects in items
@@ -231,9 +231,20 @@ func (p ProjectViewModel) View() string {
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
-	height := p.termHeight - strings.Count(fullHelpView, "\n")
-	height -= strings.Count(finalStr, "\n") + 4 // Subtracks the nunmber of lines currently take up by the final string
-	height -= strings.Count("0", "\n")          // Subtracts the remaining new lines before end of terminal
+	var height int
+
+	// Still breaks
+	if p.termHeight <= strings.Count(finalStr, "\n") {
+		p.paginator.PerPage -= 1
+		p.paginator.TotalPages += 1
+	} else {
+		height = p.termHeight - strings.Count(finalStr, "\n") // Counts lines in final string
+	}
+
+	height -= strings.Count(fullHelpView, "\n") // Counts lines in full help view
+
+	// Counts all new lines left in terminal
+	height -= strings.Count("0", "\n") + 2 // Adds buffer for full help description
 
 	// Adds the helpview which includes the paginator to our string
 	finalStr += strings.Repeat("\n", height) + styling.HelpBarStyle.Render(fullHelpView)
