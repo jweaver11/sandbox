@@ -11,16 +11,12 @@ import (
 	"golang.org/x/term"
 )
 
-const (
-	padding = 2 // Universal padding
-)
-
 type DescriptionModel struct {
 	project     string         // Projects name
 	description string         // Projects description
 	progressBar progress.Model // Progress bar
-	termWidth   int
-	termHeight  int
+	termWidth   int            // Sets terminal width
+	termHeight  int            // Sets terminal height
 }
 
 // Creates our defined model with actual values and then returns its
@@ -30,8 +26,13 @@ func CreateDescriptionModel(projectName string) DescriptionModel {
 	project := projectName
 	description := projectName + " Description biaaaatch"
 
+	PB := progress.New(progress.WithDefaultGradient()) // scaleRamp = false
+
 	// Gets Height and Width of Terminal Size
 	TW, TH, _ := term.GetSize(0)
+
+	// Sets progress bar width small enough that it wont take up two lines
+	PB.Width = TW - 20
 
 	// Returns our model
 	return DescriptionModel{
@@ -71,14 +72,11 @@ func (d DescriptionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Doesnt run on first start up since its switched to this model
 	case tea.WindowSizeMsg:
 
-		// Sets the help model and main model width for sizing later
-
-		// Sets the progress bar width
-		// If its bigger than the window, then it sets it to the size of the window
-		d.progressBar.Width = d.termWidth - padding
-
-		// Resizes the model everytime the window size changes
+		// Gets terminal size
 		d.termWidth, d.termHeight, _ = term.GetSize(0)
+
+		// Sets progress bar width to account for padding
+		d.progressBar.Width = d.termWidth - styling.ProgressBarStyle.GetPaddingLeft() - 6
 
 	// Handles key press events
 	case tea.KeyMsg:
@@ -129,7 +127,7 @@ func (d DescriptionModel) View() string {
 	var finalStr string
 
 	// Renders the header
-	finalStr += styling.HeaderStyle.UnsetForeground().Render("Projects")
+	finalStr += "\n" + styling.HeaderStyle.UnsetForeground().Render("Projects")
 	finalStr += styling.HeaderStyle.Foreground(lipgloss.Color("#7D56F4")).Render("Descriptions") + "\n\n"
 
 	// Adds the project name
@@ -139,7 +137,11 @@ func (d DescriptionModel) View() string {
 	finalStr += styling.FullDescStyle.Render(d.description)
 
 	// Sets the height == to max height - each new line in the finalStr
-	height := d.termHeight - strings.Count(finalStr, "\n") - 2
+	height := d.termHeight - strings.Count(finalStr, "\n") // Counts the number of lines the string takes up
+	height -= strings.Count(d.progressBar.View(), "\n") + 2
+	height -= strings.Count("0", "\n") // Counts all remaining lines left before bottom of terminal
+
+	// If progress bar width bigger than terminal width set them equal
 
 	finalStr += strings.Repeat("\n", height) + styling.ProgressBarStyle.Render(d.progressBar.View())
 
