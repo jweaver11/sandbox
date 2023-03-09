@@ -1,9 +1,9 @@
 // OPEN SANDBOX PROGRAM WITH THE GOALS OF ADDING ITEMS TO A LIST, AND BEING ABLE TO SELECT THEM TO PRESENT A DIFFERENT
 
 // TASKS:
-// Model breaks if terminal gets too small
-// Have per page and number of pages adjust if needed on terminal resize
-// Height x 2 or 3 of per page
+// Model breaks if terminal gets to 1 item per page or full help view called below six
+// Add copy to clipboard command for future github open source stuff
+// Try other new stuff
 // Spinner freezes after model switch
 
 package main
@@ -22,8 +22,7 @@ import (
 	"golang.org/x/term"
 )
 
-// Sets the Projects as a struct
-// This is our main model for the projects page
+// Our project page model
 type ProjectViewModel struct {
 	items, descriptions []string        // Each project item name and a short description
 	cursor              int             // Used to track the cursor's location
@@ -99,8 +98,27 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Sets the help model and main model width for sizing later
 		p.help.Width = msg.Width - styling.HelpBarStyle.GetPaddingLeft()
 
-		// Resizes the model everytime the window size changes
+		// Sets terminal width and height
 		p.termWidth, p.termHeight, _ = term.GetSize(0)
+
+		// Set Per page accordance to window size
+
+		// Sets the minimum height so the model will resize to fit smaller terminal instead of breaking
+		//........... Items per page + new lines per item....... paginator lines.....................Help view lines.........Additional lines added
+		minHeight := p.paginator.PerPage*3 + strings.Count(p.paginator.View(), "\n") + strings.Count(p.help.View(p.keys), "\n") + 4
+		minWidth := 10
+
+		// Check if the window size is less than the minimum width and height
+		if p.termWidth < minWidth || p.termHeight < minHeight {
+
+			// If there is more than one item per page, subtract one item per page
+			if p.paginator.PerPage > 1 {
+				p.paginator.PerPage -= 1
+			}
+			if p.paginator.PerPage*p.paginator.TotalPages < len(p.items) {
+				p.paginator.TotalPages += 1
+			}
+		}
 
 	// Evertime the spinner ticks, so every second
 	case spinner.TickMsg:
@@ -141,8 +159,18 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Won't move cursor down if on last item of last page
 			if p.paginator.OnLastPage() == true { // Check if on last page
 
-				if p.cursor < (len(p.items)%p.paginator.PerPage - 1) { // Check if on last item
-					p.cursor++ // Move cursor down
+				// Move cursor correctly if all items fit evenly into num of pages
+				if len(p.items)%p.paginator.PerPage == 0 {
+
+					if p.cursor == p.paginator.PerPage-1 { // Check if on last item
+						// Do Nothing
+					} else {
+						p.cursor++
+					}
+
+					// Move cursor correctly if items dont fit evenly in num of pages
+				} else if p.cursor < (len(p.items)%p.paginator.PerPage - 1) { // Check if on last item
+					p.cursor++
 				}
 
 			} else { // If not on last page move the cursor down
@@ -165,7 +193,11 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// If cursor below last item on last page, put it on last item
 			if p.paginator.OnLastPage() && p.cursor >= len(p.items)%p.paginator.PerPage {
-				p.cursor = len(p.items)%p.paginator.PerPage - 1
+				if len(p.items)%p.paginator.PerPage == 0 {
+					// Do Nothing
+				} else {
+					p.cursor = len(p.items)%p.paginator.PerPage - 1
+				}
 			}
 
 		// When ? pressed, channge between short help view and full help view
@@ -231,15 +263,7 @@ func (p ProjectViewModel) View() string {
 	fullHelpView := (p.paginator.View() + "\n\n" + p.help.View(p.keys))
 
 	// Sets the height as an int the counts all lines, even empty ones
-	var height int
-
-	// Still breaks
-	if p.termHeight <= strings.Count(finalStr, "\n") {
-		p.paginator.PerPage -= 1
-		p.paginator.TotalPages += 1
-	} else {
-		height = p.termHeight - strings.Count(finalStr, "\n") // Counts lines in final string
-	}
+	height := p.termHeight - strings.Count(finalStr, "\n") // Counts lines in final string
 
 	height -= strings.Count(fullHelpView, "\n") // Counts lines in full help view
 
