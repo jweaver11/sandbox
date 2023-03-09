@@ -2,6 +2,7 @@
 
 // TASKS:
 // Model breaks if terminal gets to 1 item per page or full help view called below six
+// Make sure room for full help view before activating it
 // Add copy to clipboard command for future github open source stuff
 // Try other new stuff
 // Spinner freezes after model switch
@@ -24,45 +25,44 @@ import (
 
 // Our project page model
 type ProjectViewModel struct {
-	items, descriptions []string        // Each project item name and a short description
-	cursor              int             // Used to track the cursor's location
-	keys                keyMap          // Sets a keymap needed to use the help view
-	help                help.Model      // Sets help as a help.Model so we can add it automatically to the bottom of our model
-	paginator           paginator.Model // Adds page scrolling to bottom of page
-	spinner             spinner.Model   // Adds the spinner to be used as a cursor
-	err                 error           // Error that can be returned
-	termWidth           int             // Sets terminal width
-	termHeight          int             // Sets terminal height
+	items, descriptions []string        // project names and short descriptions
+	cursor              int             // cursor for selected item
+	keys                keyMap          // keymap for help model
+	help                help.Model      // help model
+	paginator           paginator.Model // paginator model
+	spinner             spinner.Model   // spinner model
+	termWidth           int             // terminal width
+	termHeight          int             // terminal height
 }
 
 // Creates our defined model with actual values and then returns it
 func CreateProjectViewModel() ProjectViewModel {
-	// Sets items and descriptions new so we can change them easier here, and return them later
-	var items, descriptions []string
 
-	// Temporary just numbers a bunch of project titles and descriptions
+	var items, descriptions []string // Sets items, desc for easy return later
+	TW, TH, _ := term.GetSize(0)     // Set terminal width and height
+
+	// Temporary generate projects to fill pages
 	for i := 1; i < 36; i++ {
 		text := fmt.Sprintf("Project: %d", i)
 		desc := fmt.Sprintf("Short Description: %d", i)
 		items = append(items, text)
 		descriptions = append(descriptions, desc)
 	}
-	TW, TH, _ := term.GetSize(0)
 
-	// SPINNER -- Sets up our spinner
-	s := spinner.New()             // Sets s as a new spinner
-	s.Spinner = spinner.Line       // Sets the dots style spinner
-	s.Style = styling.SpinnerStyle // Uses the spinner styling
+	// PAGINATOR SETUP -- controls left-right paging
+	p := paginator.New()                                 // p new paginator
+	p.Type = paginator.Dots                              // Dots as pages
+	p.PerPage = 8                                        // Num items per page
+	p.ActiveDot = styling.ActiveDotStyle.Render("•")     // Active page styling
+	p.InactiveDot = styling.InactiveDotStyle.Render("•") // Non-Active page styling
+	p.SetTotalPages(len(items))                          // Total number of pages
+	p.KeyMap.NextPage.Unbind()                           // Unbinds the Next/Prev page command
+	p.KeyMap.PrevPage.Unbind()                           // causes glitches with or own command
 
-	// PAGINATOR -- Initializes the page scrolling for our list of items
-	p := paginator.New()                                 // Sets p as a new paginator
-	p.Type = paginator.Dots                              // Using dots as the pages
-	p.PerPage = 8                                        // Number of items per page
-	p.ActiveDot = styling.ActiveDotStyle.Render("•")     // Selected page styling
-	p.InactiveDot = styling.InactiveDotStyle.Render("•") // Non-selected pages formatting
-	p.SetTotalPages(len(items))                          // Sets the total number of pages
-	p.KeyMap.NextPage.Unbind()                           // Unbinds the Next page command so we can customize it ourselves
-	p.KeyMap.PrevPage.Unbind()                           // Unbinds the Prev page command so we can customize it
+	// SPINNER SETUP - animated cursor
+	s := spinner.New()             // s new spinner
+	s.Spinner = spinner.Line       // line style spinner
+	s.Style = styling.SpinnerStyle // spinner styling
 
 	// Returns our model
 	return ProjectViewModel{
@@ -80,16 +80,17 @@ func CreateProjectViewModel() ProjectViewModel {
 // ********************** BUBBLE TEA BUILT IN FUNCTIONS ***********************
 // Initializes the model at start of program and returns a command if there is one
 func (p ProjectViewModel) Init() tea.Cmd {
-	// return p.spinner.Tick // Starts the spinner when program starts
-	return nil
+	return p.spinner.Tick // Starts the spinner when program starts
+	//return nil
 }
 
 // Runs whenever there is an update or event
 func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Sets the cmd for easy return later
+
+	// Sets cmd easy return later
 	var cmd tea.Cmd
 
-	// Sets switch cases for the msg, which is the key press
+	// Sets msg as a switch for all events
 	switch msg := msg.(type) {
 
 	// Runs whenever the window is resized or first loaded
@@ -106,21 +107,22 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Sets the minimum height so the model will resize to fit smaller terminal instead of breaking
 		//........... Items per page + new lines per item....... paginator lines.....................Help view lines.........Additional lines added
 		minHeight := p.paginator.PerPage*3 + strings.Count(p.paginator.View(), "\n") + strings.Count(p.help.View(p.keys), "\n") + 4
-		minWidth := 10
+		//minWidth := 10
 
-		// Check if the window size is less than the minimum width and height
-		if p.termWidth < minWidth || p.termHeight < minHeight {
+		// Check if terminal height is big enough for model
+		if p.termHeight < minHeight {
 
-			// If there is more than one item per page, subtract one item per page
+			// If there is more than one item per page, subtract one
 			if p.paginator.PerPage > 1 {
 				p.paginator.PerPage -= 1
 			}
+			// Add a page if needed
 			if p.paginator.PerPage*p.paginator.TotalPages < len(p.items) {
 				p.paginator.TotalPages += 1
 			}
 		}
 
-	// Evertime the spinner ticks, so every second
+	// Runs when spinner ticks (every second)
 	case spinner.TickMsg:
 		s, cmd := p.spinner.Update(msg) // Update the spinner
 		p.spinner = s
@@ -129,56 +131,59 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handles key press events
 	case tea.KeyMsg:
 
-		// Converts the messages to string so we can see which key was pressed
+		// Converts the messages to string
 		switch msg.String() {
 
-		// Three keys that quit the program
+		// Keys that quit the program
 		case "ctrl+c", "q", "esc":
 			return p, tea.Quit
 
 		// When up is pressed, move the cursor up
 		case "up":
 
-			// If on first page and cursor on first item, don't go up
+			// If cursor on first item of first page, don't go up
 			if p.paginator.Page == 0 && p.cursor == 0 {
-
-				// Otherwise move cursor up
-			} else {
-				p.cursor-- // Move cursor up
+				// Do nothing
+			} else { // Otherwise move cursor up
+				p.cursor--
 			}
 
-			// Moving cursor up when on first item of page that is not the first, change page to previous one
+			// When cursor moved up and on first item, go to last item on prev page
 			if p.cursor == -1 {
-				p.paginator.PrevPage()             // Go to previous page
-				p.cursor = p.paginator.PerPage - 1 // Go to last item on previous page
+				p.paginator.PrevPage()
+				p.cursor = p.paginator.PerPage - 1
 			}
 
 		// When down pressed, move cursor down
 		case "down":
 
-			// Won't move cursor down if on last item of last page
-			if p.paginator.OnLastPage() == true { // Check if on last page
+			// Check if on last page
+			if p.paginator.OnLastPage() == true {
 
-				// Move cursor correctly if all items fit evenly into num of pages
+				// Handle cursor if num of items / items per page has no remainder
 				if len(p.items)%p.paginator.PerPage == 0 {
 
-					if p.cursor == p.paginator.PerPage-1 { // Check if on last item
+					// Check if on last item
+					if p.cursor == p.paginator.PerPage-1 {
+
 						// Do Nothing
-					} else {
+					} else { // Otherwise move cursor up
 						p.cursor++
 					}
 
-					// Move cursor correctly if items dont fit evenly in num of pages
-				} else if p.cursor < (len(p.items)%p.paginator.PerPage - 1) { // Check if on last item
+					// Handle cursor if num of items / items per page has a remainder
+
+				} else if p.cursor < (len(p.items)%p.paginator.PerPage - 1) { // Check if not on last item
 					p.cursor++
 				}
 
-			} else { // If not on last page move the cursor down
+				// If not on last page move the cursor down
+			} else {
 				p.cursor++
 			}
 
-			// Move cursor to start of next page if on last item
-			if p.cursor == p.paginator.PerPage { // Move cursor to next page if on last item of page
+			// If on last item of page move cursor to first item of next page
+			if p.cursor == p.paginator.PerPage {
 				p.paginator.NextPage()
 				p.cursor = 0
 			}
@@ -193,21 +198,27 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// If cursor below last item on last page, put it on last item
 			if p.paginator.OnLastPage() && p.cursor >= len(p.items)%p.paginator.PerPage {
+
+				// If num of items / items per page has no remainder, don't change cursor
 				if len(p.items)%p.paginator.PerPage == 0 {
-					// Do Nothing
+
+					// Otherwise change cursor to last item on last page
 				} else {
 					p.cursor = len(p.items)%p.paginator.PerPage - 1
 				}
 			}
 
-		// When ? pressed, channge between short help view and full help view
+		// When ? pressed, switch between short help view and full help view
 		case "?":
 			p.help.ShowAll = !p.help.ShowAll
 
-		// If space pressed, switches to description model of selected project
+		// If space pressed, pull up description model of selected project
 		case " ":
-			if p.cursor > len(p.items)%p.paginator.PerPage && p.paginator.OnLastPage() { // Prevent error if no project selected
+
+			// Prevent error if no project selected
+			if p.cursor > len(p.items)%p.paginator.PerPage && p.paginator.OnLastPage() {
 				return p, nil
+
 			} else {
 				cmd = tea.Batch(tea.ClearScreen, tea.EnterAltScreen)
 				return CreateDescriptionModel(p.items[p.cursor+(p.paginator.Page*p.paginator.PerPage)]), cmd
@@ -226,6 +237,7 @@ func (p ProjectViewModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // Renders the view so the user can see the updated model
 func (p ProjectViewModel) View() string {
+
 	// Sets s as a string builder needed for paginator
 	var s strings.Builder
 
@@ -237,7 +249,7 @@ func (p ProjectViewModel) View() string {
 	finalStr += styling.HeaderStyle.UnsetForeground().Render("Descriptions") + "\n\n"
 
 	// Iterate over the individual projects in items
-	// Using the paginator function GetSliceBounds
+	// Using the paginator helper function GetSliceBounds
 	start, end := p.paginator.GetSliceBounds(len(p.items))
 
 	for i, item := range p.items[start:end] {
